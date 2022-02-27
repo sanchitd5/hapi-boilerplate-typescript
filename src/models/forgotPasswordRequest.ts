@@ -1,9 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 import universalFunctions from "../utils/universalFunctions"
 
-
-var forgetPasswordRequests = new Schema({
-    customerID: { type: Schema.ObjectId, ref: 'users' },
+const forgetPasswordRequests = new Schema({
+    customerID: { type: Schema.Types.ObjectId, ref: 'users' },
     userType: {
         type: String,
         enum: [
@@ -16,4 +15,4 @@ var forgetPasswordRequests = new Schema({
     changedAt: { type: Date }
 });
 
-module.exports = mongoose.model('forgetPasswordRequests', forgetPasswordRequests);
+export default mongoose.model('forgetPasswordRequests', forgetPasswordRequests);

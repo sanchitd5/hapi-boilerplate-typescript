@@ -1,7 +1,8 @@
+import Hapi from '@hapi/hapi';
 import HapiSwagger from 'hapi-swagger';
 import 'dotenv/config';
 
-const swaggerOptions = {
+const swaggerOptions: HapiSwagger.RegisterOptions = {
     pathPrefixSize: 2,
     info: {
         'title': `${process.env.APP_NAME} Backend`,
@@ -23,14 +24,16 @@ const swaggerOptions = {
     }
 };
 
-export function register(server, options) {
-    server.register({
-        plugin: HapiSwagger,
-        options: swaggerOptions
-    }, {}, (err) => {
-        if (err) server.log(['error'], 'hapi-swagger load error: ' + err)
-        else server.log(['info'], 'hapi-swagger interface loaded')
-    });
+export const register = async (server: Hapi.Server, options: HapiSwagger.RegisterOptions) => {
+    try {
+        await server.register({
+            plugin: HapiSwagger,
+            options: { ...options, ...swaggerOptions }
+        });
+        server.log(['info'], 'hapi-swagger interface loaded');
+    } catch (e) {
+        server.log(['error'], 'hapi-swagger load error: ' + e);
+    }
 }
 
 export const name = 'swagger-plugin';

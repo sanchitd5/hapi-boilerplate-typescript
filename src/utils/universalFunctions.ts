@@ -19,7 +19,7 @@ import validator from "validator";
 import { DateTime } from "luxon";
 
 
-const sendError = (data) => {
+const sendError = (data: any) => {
   console.trace('ERROR OCCURED ', data)
   if (typeof data == 'object' && data.hasOwnProperty('statusCode') && data.hasOwnProperty('customMessage')) {
     appLogger.info('attaching resposnetype', data.type)
@@ -35,9 +35,6 @@ const sendError = (data) => {
           let duplicateValue = data.errmsg && data.errmsg.substr(data.errmsg.lastIndexOf('{ : "') + 5);
           duplicateValue = duplicateValue.replace('}', '');
           errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DUPLICATE.customMessage + " : " + duplicateValue;
-          if (data.message.indexOf('customer_1_streetAddress_1_city_1_state_1_country_1_zip_1') > -1) {
-            errorToSend = CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DUPLICATE_ADDRESS.customMessage;
-          }
         }
       } else if (data.name == 'ApplicationError') {
         errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.APP_ERROR.customMessage + ' : ';
@@ -62,7 +59,7 @@ const sendError = (data) => {
   }
 };
 
-const sendSuccess = (successMsg, data) => {
+const sendSuccess = (successMsg: any, data: any) => {
   successMsg = successMsg || CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT.customMessage;
   if (typeof successMsg == 'object' && successMsg.hasOwnProperty('statusCode') && successMsg.hasOwnProperty('customMessage')) {
     return { statusCode: successMsg.statusCode, message: successMsg.customMessage, data: data || {} };
@@ -72,7 +69,7 @@ const sendSuccess = (successMsg, data) => {
 
   }
 };
-const failActionFunction = (request, reply, error) => {
+const failActionFunction = (request: any, reply: any, error: any) => {
   var customErrorMessage = '';
   if (error.output.payload.message.indexOf("[") > -1) {
     customErrorMessage = error.output.payload.message.substr(error.output.payload.message.indexOf("["));
@@ -91,7 +88,7 @@ const authorizationHeaderObj = Joi.object({
   authorization: Joi.string().required()
 }).options({ allowUnknown: true });
 
-const generateRandomString = (stringLength) => {
+const generateRandomString = (stringLength: number) => {
   if (stringLength === undefined) stringLength = 12;
   return randomstring.generate(stringLength);
 };
@@ -101,7 +98,7 @@ const generateRandomNumber = () => {
   return num;
 };
 
-const generateRandomAlphabet = function (len) {
+const generateRandomAlphabet = function (len: number) {
   var charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   var randomString = '';
   for (var i = 0; i < len; i++) {
@@ -112,11 +109,11 @@ const generateRandomAlphabet = function (len) {
   return randomString;
 }
 
-const CryptData = (stringToCrypt) => {
+const CryptData = (stringToCrypt: string) => {
   return MD5(MD5(stringToCrypt));
 };
 
-const validateLatLongValues = (lat, long) => {
+const validateLatLongValues = (lat: number, long: number) => {
   var valid = true;
   if (lat < -90 || lat > 90) {
     valid = false;
@@ -127,15 +124,15 @@ const validateLatLongValues = (lat, long) => {
   return valid;
 };
 
-const validateString = (str, pattern) => {
+const validateString = (str: string, pattern: string) => {
   appLogger.info(str, pattern, str.match(pattern));
   return str.match(pattern);
 };
 
-const verifyEmailFormat = (string) => {
+const verifyEmailFormat = (string: string) => {
   return validator.isEmail(string)
 };
-var deleteUnnecessaryUserData = function (userObj) {
+var deleteUnnecessaryUserData = function (userObj: any) {
   appLogger.info('deleting>>', userObj)
   delete userObj.__v;
   delete userObj.password;
@@ -144,13 +141,13 @@ var deleteUnnecessaryUserData = function (userObj) {
   appLogger.info('deleted', userObj)
   return userObj;
 };
-var generateFilenameWithExtension = function generateFilenameWithExtension(oldFilename, newFilename) {
+var generateFilenameWithExtension = function generateFilenameWithExtension(oldFilename: string, newFilename: string) {
   var ext = oldFilename.substr((~-oldFilename.lastIndexOf(".") >>> 0) + 2);
   return newFilename + '.' + ext;
 }
 
 
-function isEmpty(obj) {
+function isEmpty(obj: any) {
   // null and undefined are "empty"
   if (obj == null) return true;
 
@@ -163,20 +160,20 @@ function isEmpty(obj) {
   // Note that this doesn't handle
   // toString and toValue enumeration bugs in IE < 9
   for (var key in obj) {
-    if (hasOwnProperty.call(obj, key)) return false;
+    if (Object.hasOwnProperty.call(obj, key)) return false;
   }
 
   return true;
 }
 
-var getTimestamp = function (inDate) {
+var getTimestamp = function (inDate?: boolean) {
   if (inDate)
     return new Date();
 
   return new Date().toISOString();
 };
 
-var createArray = function (List, keyName) {
+var createArray = function (List: Array<any>, keyName: string) {
   appLogger.info("create array------>>>>>>>")
   var IdArray = [];
   var keyName = keyName;
@@ -190,11 +187,11 @@ var createArray = function (List, keyName) {
 
 };
 
-const getRange = (startDate, endDate, diffIn = CONFIG.APP_CONSTANTS.TIME_UNITS.HOURS) =>
+const getRange = (startDate: Date, endDate: Date, diffIn: any = CONFIG.APP_CONSTANTS.TIME_UNITS.HOURS) =>
   DateTime.fromJSDate(startDate).diff(DateTime.fromJSDate(endDate)).as(diffIn ?? 'millis');
 
 
-const checkFileExtension = (fileName) =>
+const checkFileExtension = (fileName: string) =>
   fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length) || fileName;
 
 
@@ -205,8 +202,8 @@ const checkFileExtension = (fileName) =>
  * @param {Function} callback callback function which returns cleaned object.
  * @returns {Object} Cleaned Version of the object. 
  */
-const cleanObject = (obj, callback) => {
-  let newObj = Object.keys(obj)
+const cleanObject = (obj: any, callback?: Function) => {
+  let newObj: any = Object.keys(obj)
     .filter(k => obj[k] != undefined && obj[k] != null && obj[k] != '') // Remove undef. and null.
     .reduce(
       (newObj, k) =>

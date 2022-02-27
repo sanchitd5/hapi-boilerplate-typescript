@@ -1,10 +1,10 @@
 
 
 "use strict";
-var SOCIAL = {
+const SOCIAL = {
   FACEBOOK: "FACEBOOK"
 };
-var swaggerDefaultResponseMessages = [
+const swaggerDefaultResponseMessages = [
   { code: 200, message: "OK" },
   { code: 400, message: "Bad Request" },
   { code: 401, message: "Unauthorized" },
@@ -24,7 +24,7 @@ const DATABASE = {
   }
 };
 
-var STATUS_MSG = {
+const STATUS_MSG = {
   ERROR: {
     DEFAULT: {
       statusCode: 400,
@@ -248,9 +248,9 @@ var STATUS_MSG = {
   }
 };
 
-var notificationMessages = {};
+const notificationMessages = {};
 
-var TIME_UNITS = {
+const TIME_UNITS = {
   MONTHS: "months",
   HOURS: "hours",
   MINUTES: "minutes",
@@ -259,7 +259,7 @@ var TIME_UNITS = {
   DAYS: "days"
 };
 
-const CUSTOM_ERROR_404 = function (msg) {
+const CUSTOM_ERROR_404 = (msg: string) => {
   return {
     statusCode: 404,
     customMessage: msg + " NOT FOUND",
@@ -267,7 +267,7 @@ const CUSTOM_ERROR_404 = function (msg) {
   };
 };
 
-const CUSTOM_ERROR = function (msg, statusCode) {
+const CUSTOM_ERROR = function (msg: string, statusCode: number) {
   return {
     statusCode: statusCode || 400,
     customMessage: msg

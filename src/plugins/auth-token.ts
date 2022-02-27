@@ -1,7 +1,8 @@
+import Hapi from '@hapi/hapi';
 import TokenManager from '../lib/tokenManager';
-const AuthBearer = require('hapi-auth-bearer-token');
+import AuthBearer from 'hapi-auth-bearer-token';
 
-exports.register = async function (server, options, next) {
+export const register = async function (server: Hapi.Server) {
 
     await server.register(AuthBearer)
     //Register Authorization Plugin
@@ -11,7 +12,7 @@ exports.register = async function (server, options, next) {
         accessTokenName: 'accessToken',
         validate: async function (request, token, h) {
             let isValid = false;
-            let credentials = await TokenManager.verifyToken(token)
+            const credentials = await TokenManager.verifyToken(token)
             if (credentials && credentials['userData']) {
                 isValid = true;
             }
@@ -20,4 +21,4 @@ exports.register = async function (server, options, next) {
     });
 };
 
-exports.name = 'auth-token-plugin'
+export const name = 'auth-token-plugin'

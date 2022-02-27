@@ -11,9 +11,11 @@
 * - FATAL - ‘magenta’
 */
 
-import Services from "../services";
+import Services from "../services/index";
 import Config from "../config";
-var Jwt = require("jsonwebtoken");
+import { DeviceData, GenericObject, TokenData } from "../definations";
+import { countBy } from "lodash";
+const Jwt = require("jsonwebtoken");
 
 /**
  * 
@@ -23,8 +25,8 @@ var Jwt = require("jsonwebtoken");
  * @param {String} token 
  * @returns 
  */
-var getTokenFromDB = async function (userId, userType, token) {
-  var criteria = (() => {
+const getTokenFromDB = async function (userId: string, userType: string, token: string) {
+  const criteria = (() => {
     switch (userType) {
       case Config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN:
       case Config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN:
@@ -32,7 +34,7 @@ var getTokenFromDB = async function (userId, userType, token) {
       default: return { userId, accessToken: token }
     }
   })();
-  let result = await Services.TokenService.getRecordUsingPromise(criteria, {}, {});
+  const result = await Services.TokenService.getRecordUsingPromise(criteria, {}, {});
   if (result && result.length > 0) {
     result[0].type = userType;
     return result[0];
@@ -52,9 +54,9 @@ var getTokenFromDB = async function (userId, userType, token) {
  * @param {String} tokenData.deviceUUID
  * @param {Function} callback 
  */
-const setTokenInDB = function (userId, userType, tokenData, callback) {
+const setTokenInDB = function (userId: string, userType: string, tokenData: any, callback: Function) {
   tokenLogger.info("login_type::::::::", userType);
-  let objectToCreate, criteria;
+  let objectToCreate: { [key: string]: any }, criteria: { [key: string]: any };
   switch (userType) {
     case Config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN:
     case Config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN: {
@@ -68,6 +70,7 @@ const setTokenInDB = function (userId, userType, tokenData, callback) {
     }
   }
   Services.TokenService.getRecord(criteria, {}, {}, (err, data) => {
+    if (err) return countBy(err);
     if (data.length === 0) {
       Services.TokenService.createRecord(objectToCreate, (err) => {
         if (err) callback(err);
@@ -76,7 +79,7 @@ const setTokenInDB = function (userId, userType, tokenData, callback) {
         }
       });
     } else {
-      Services.TokenService.updateRecord(criteria, tokenData, (err) => {
+      Services.TokenService.updateRecord(criteria, tokenData, {}, (err) => {
         if (err) callback(err);
         else {
           callback();
@@ -89,30 +92,29 @@ const setTokenInDB = function (userId, userType, tokenData, callback) {
 
 /**
  * 
- * @param {Object} tokenData 
+ * @param {TokenData} tokenData 
  * @param {String} tokenData.id User ID
  * @param {String} tokenData.type User Type 
- * @param {Object} deviceData 
+ * @param {DeviceData} deviceData 
  * @param {String} deviceData.deviceUUID 
  * @param {String} deviceData.deviceType
  * @param {String} deviceData.deviceName
  * @param {Function} callback 
  */
-const setToken = function (tokenData, deviceData, callback) {
+const setToken = function (tokenData: TokenData, deviceData: DeviceData, callback: Function) {
   if (!tokenData.id || !tokenData.type) {
     callback(Config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR);
   } else {
     const tokenToSend = Jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
     setTokenInDB(tokenData.id, tokenData.type, { accessToken: tokenToSend, ...deviceData }, (
-      err,
-      data
+      err: Error,
     ) => {
       callback(err, { accessToken: tokenToSend });
     });
   }
 };
 
-var verifyToken = async function (token) {
+const verifyToken = async function (token: string): Promise<any> {
   try {
     const decodedData = await Jwt.verify(token, process.env.JWT_SECRET_KEY);
     const result = await getTokenFromDB(
@@ -128,7 +130,7 @@ var verifyToken = async function (token) {
   }
 };
 
-var decodeToken = async function (token) {
+const decodeToken = async (token: string) => {
   try {
     const decodedData = await Jwt.verify(token, process.env.JWT_SECRET_KEY);
     return { userData: decodedData, token: token };

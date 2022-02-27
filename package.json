@@ -8,10 +8,11 @@
     "node": "16.*"
   },
   "scripts": {
-    "start": "npx babel-node src/entry.js",
-    "startWithNodemon": "nodemon --exec babel-node src/entry.js",
+    "start": "ts-node src/entry.ts",
+    "nodemon": "nodemon --exec ts-node src/entry.ts",
     "build": "npx babel src --out-dir build --ignore node_modules",
-    "deployment": "node build/entry.js"
+    "deployment": "node build/entry.js",
+    "lint": "eslint . --fix"
   },
   "dependencies": {
     "@hapi/boom": "^9.1.4",
@@ -44,11 +45,25 @@
   "author": "Sanchit Dang",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.5",
-    "@babel/node": "^7.16.8",
-    "@babel/plugin-proposal-class-properties": "^7.16.7",
-    "@babel/plugin-proposal-private-methods": "^7.16.11",
-    "@babel/preset-env": "^7.16.11"
+    "@tsconfig/node16": "^1.0.2",
+    "@types/async": "^3.2.12",
+    "@types/express": "^4.17.13",
+    "@types/fluent-ffmpeg": "^2.1.20",
+    "@types/fs-extra": "^9.0.13",
+    "@types/hapi-auth-bearer-token": "^6.1.3",
+    "@types/hapi__hapi": "^20.0.10",
+    "@types/hapi__inert": "^5.2.3",
+    "@types/hapi__vision": "^5.5.3",
+    "@types/lodash": "^4.14.179",
+    "@types/luxon": "^2.0.9",
+    "@types/md5": "^2.3.2",
+    "@types/node": "^17.0.21",
+    "@types/randomstring": "^1.1.8",
+    "@types/validator": "^13.7.1",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
+    "eslint": "^8.10.0",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
   }
 }

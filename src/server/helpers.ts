@@ -9,6 +9,8 @@ import Path from "path";
 import BootStrap from "../utils/bootStrap";
 import Routes from "../routes";
 import fs from 'fs-extra';
+import '../global';
+
 
 /**
  * @description Helper file for the server
@@ -21,7 +23,7 @@ class ServerHelper {
 
 
   bootstrap() {
-    BootStrap.bootstrapAdmin(function (err) {
+    BootStrap.bootstrapAdmin((err: any) => {
       if (err) appLogger.debug(err)
     });
   }
@@ -30,7 +32,7 @@ class ServerHelper {
    * 
    * @param {Hapi.Server} server 
    */
-  addSwaggerRoutes(server) {
+  addSwaggerRoutes(server: Hapi.Server) {
     server.route(Routes);
   }
 
@@ -38,8 +40,8 @@ class ServerHelper {
    * 
    * @param {Hapi.Server} server 
    */
-  attachLoggerOnEvents(server) {
-    server.events.on("response", function (request) {
+  attachLoggerOnEvents(server: Hapi.Server) {
+    server.events.on("response", (request: any) => {
       appLogger.info(
         `${request.info.remoteAddress} : ${request.method.toUpperCase()} ${request.url.pathname} --> ${request.response.statusCode}`);
       appLogger.info("Request payload:", request.payload);
@@ -49,8 +51,8 @@ class ServerHelper {
   /**
    * @returns {Hapi.Server} A Hapi Server
    */
-  createServer() {
-    let server = new Hapi.Server({
+  createServer(): Hapi.Server {
+    const server = new Hapi.Server({
       app: {
         name: process.env.APP_NAME || "default"
       },
@@ -66,8 +68,8 @@ class ServerHelper {
    * @description Adds Views to the server
    * @param {Hapi.Server} server 
    */
-  addViews(server) {
-    server.views({
+  addViews(server: Hapi.Server) {
+    (server as any).views({
       engines: {
         html: handlebars
       },
@@ -82,13 +84,13 @@ class ServerHelper {
    * @param {Hapi.Server} server HAPI Server
    * @param {String} defaultRoute Optional - default route
    */
-  setDefaultRoute(server, defaultRoute) {
+  setDefaultRoute(server: Hapi.Server, defaultRoute?: string) {
     if (defaultRoute === undefined) defaultRoute = "/"
     server.route({
       method: "GET",
       path: defaultRoute,
       handler: (req, res) => {
-        return res.view("welcome");
+        return (res as any).view("welcome");
       }
     });
   }
@@ -97,16 +99,17 @@ class ServerHelper {
    * 
    * @param {Hapi.Server} server HAPI Server
    */
-  async registerPlugins(server) {
-    await server.register(SwaggerPlugins, {}, err => {
-      if (err)
-        server.log(["error"], "Error while loading plugins : " + err);
-      else
-        server.log(["info"], "Plugins Loaded");
-    });
+  async registerPlugins(server: Hapi.Server) {
+    try {
+      await (server as any).register(SwaggerPlugins);
+      server.log(["info"], "Plugins Loaded");
+    } catch (e) {
+      server.log(["error"], "Error while loading plugins : " + e);
+    }
   }
 
   configureLog4js = () => {
+
     // Configuration for log4js.
     log4js.configure({
       appenders: {
@@ -136,7 +139,7 @@ class ServerHelper {
    * 
    * @param {Hapi.Server} server 
    */
-  async startServer(server) {
+  async startServer(server: Hapi.Server) {
     try {
       await server.start();
       appLogger.info("Server running on %s", server.info.uri);

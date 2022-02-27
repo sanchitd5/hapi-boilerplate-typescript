@@ -1,15 +1,23 @@
 import MODELS from "../models/index";
+import { GenericObject } from '../definations';
+
+interface GenericServceCallback {
+    (err: Error, data: any): void;
+}
 
 /**
  * @author Sanchit Dang
  * @description Generic Service Template
  */
 export default class GenericService {
+    declare modelName: string;
+    declare objects: Array<any>;
+
     /**
      * 
      * @param {String} modelName Name of the Model
      */
-    constructor(modelName) {
+    constructor(modelName: string) {
         if (!this.#isModelValid(modelName)) {
             console.error(`Invalid model name ${modelName}`);
             throw "Invalid model name '" + modelName + "'. Terminating app..."
@@ -25,8 +33,8 @@ export default class GenericService {
      * @description Validate if models exists
      * @param {String} modelName name of the model 
      */
-    #isModelValid(modelName) {
-        return !(!modelName || 0 === modelName.length || !MODELS.hasOwnProperty(modelName));
+    #isModelValid(modelName: string) {
+        return !(!modelName || 0 === modelName.length || !MODELS.hasOwnProperty(modelName as PropertyKey));
     }
 
     /**
@@ -37,7 +45,7 @@ export default class GenericService {
      * @param {Object} options 
      * @param {Function} callback 
      */
-    updateRecord(criteria, data, options, callback) {
+    updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback: GenericServceCallback) {
         options.lean = true;
         options.new = true;
         MODELS[this.modelName].findOneAndUpdate(criteria, data, options, callback);
@@ -49,7 +57,7 @@ export default class GenericService {
      * @param {Object} data 
      * @param {Function} callback 
      */
-    createRecord(data, callback) {
+    createRecord(data: GenericObject, callback: GenericServceCallback) {
         MODELS[this.modelName](data).save(callback);
     }
 
@@ -59,7 +67,7 @@ export default class GenericService {
      * @param {Object} criteria 
      * @param {Function} callback 
      */
-    deleteRecord(criteria, callback) {
+    deleteRecord(criteria: GenericObject, callback: Function) {
         MODELS[this.modelName].findOneAndRemove(criteria, callback);
     }
 
@@ -71,7 +79,7 @@ export default class GenericService {
      * @param {Object} options 
      * @param {Function} callback 
      */
-    getRecord(criteria, projection, options, callback) {
+    getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback: GenericServceCallback) {
         options.lean = true;
         MODELS[this.modelName].find(criteria, projection, options, callback);
     }
@@ -81,10 +89,10 @@ export default class GenericService {
      * @description Retrive records while populating them
      * @param {Object} criteria 
      * @param {Object} projection 
-     * @param {Object} populate 
+     * @param {Object|string} populate 
      * @param {Function} callback 
      */
-    getPopulatedRecords(criteria, projection, populate, callback) {
+    getPopulatedRecords(criteria: GenericObject, projection: GenericObject, populate: GenericObject | string, callback: GenericServceCallback) {
         MODELS[this.modelName].find(criteria).select(projection).populate(populate).exec(callback)
     }
 
@@ -94,7 +102,7 @@ export default class GenericService {
      * @param {Object} criteria 
      * @param {Function} callback 
      */
-    aggregate(criteria, callback) {
+    aggregate(criteria: GenericObject, callback: Function) {
         MODELS[this.modelName].aggregate(criteria, callback);
     }
 
@@ -106,10 +114,10 @@ export default class GenericService {
      * @param {Object} projection 
      * @param {Object} options 
      */
-    getRecordUsingPromise(criteria, projection, options) {
+    getRecordUsingPromise(criteria: GenericObject, projection: GenericObject, options: GenericObject): Promise<any> {
         options.lean = true;
         return new Promise((resolve, reject) => {
-            MODELS[this.modelName].find(criteria, projection, options, function (err, data) {
+            MODELS[this.modelName].find(criteria, projection, options, (err: Error, data: any) => {
                 if (err) reject(err);
                 else resolve(data);
             });

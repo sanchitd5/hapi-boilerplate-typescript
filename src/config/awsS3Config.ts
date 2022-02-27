@@ -3,7 +3,7 @@
 * make sure project folder name doesnt not have spaces in between and is same
 * as the name you give while running upload_setup.sh
 */
-var s3BucketCredentials = {
+const s3BucketCredentials = {
     "projectFolder": "<project_folder_name>",
     "bucket": "<project_bucket_ibm>",
     "endpoint": 's3.au-syd.cloud-object-storage.appdomain.cloud',

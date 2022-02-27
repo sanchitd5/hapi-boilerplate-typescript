@@ -1,9 +1,9 @@
 import Service from '../services';
 import async from "async";
-import UniversalFunctions from "../utils/universalFunctions";
+import UniversalFunctions from "./universalFunctions";
 import { superAdmins } from "../config/users";
 
-const insertData = (adminData, callbackParent) => {
+const insertData = (adminData: any, callbackParent: Function) => {
     let _skip = false;
     async.series([
         (cb) => {
@@ -33,7 +33,7 @@ const insertData = (adminData, callbackParent) => {
             }
             else cb()
         }
-    ], (err, result) => {
+    ], (err) => {
         if (err) return callbackParent(err)
         else {
             return callbackParent(null);
@@ -41,11 +41,11 @@ const insertData = (adminData, callbackParent) => {
     })
 };
 
-const bootstrapAdmin = (callbackParent) => {
-    var taskToRunInParallel = [];
+const bootstrapAdmin = (callbackParent: Function) => {
+    var taskToRunInParallel: async.AsyncFunction<unknown, Error>[] = [];
     superAdmins.forEach((admin) => {
         taskToRunInParallel.push(((admin) => {
-            return (embeddedCB) => {
+            return (embeddedCB: Function) => {
                 let adminData = {
                     emailId: admin.email,
                     password: UniversalFunctions.CryptData(admin.password),
