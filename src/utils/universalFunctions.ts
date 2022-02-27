@@ -88,7 +88,7 @@ const authorizationHeaderObj = Joi.object({
   authorization: Joi.string().required()
 }).options({ allowUnknown: true });
 
-const generateRandomString = (stringLength: number) => {
+const generateRandomString = (stringLength?: number) => {
   if (stringLength === undefined) stringLength = 12;
   return randomstring.generate(stringLength);
 };

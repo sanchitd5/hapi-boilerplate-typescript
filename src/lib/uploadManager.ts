@@ -433,7 +433,7 @@ function saveCSVFile(fileData: any, path: string, callback: Function) {
     fs.copy(fileData, path).then((data) => callback(null, data)).catch((e) => callback(e));
 }
 
-module.exports = {
+export default {
     uploadProfilePicture: uploadProfilePicture,
     saveCSVFile: saveCSVFile,
     uploadfileWithoutThumbnail: uploadfileWithoutThumbnail,
