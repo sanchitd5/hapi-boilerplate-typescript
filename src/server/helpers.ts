@@ -109,7 +109,6 @@ class ServerHelper {
   }
 
   configureLog4js = () => {
-
     // Configuration for log4js.
     log4js.configure({
       appenders: {
