@@ -1,4 +1,4 @@
-# Node.js User Onboarding application
+# Node.js User Onboarding application (Typescript)
 A Node based module using Mongodb to onboard user's into a very basic application, secured using JWT authorization.
 
 The Node.js app uses [Hapi Framework](https://hapijs.com) and [Hapi Swagger](https://github.com/glennjones/hapi-swagger)
@@ -63,11 +63,6 @@ $ npm -v
 
 ```
 $ npm i -g pnpm
-
-```
-
-```
-$ npm i -g @babel/core @babel/node @babel/cli
 ```
 
 ```
