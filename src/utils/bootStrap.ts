@@ -7,7 +7,7 @@ const insertData = (adminData: any, callbackParent: Function) => {
     let _skip = false;
     async.series([
         (cb) => {
-            Service.AdminService.getRecord({ emailId: adminData.emailId }, {}, {}, (err, data) => {
+            Service.AdminService.getRecord({ emailId: adminData.emailId }, {}, {}, (err: Error, data: any) => {
                 if (err) cb(err)
                 else {
                     if (data.length > 0) {
@@ -20,7 +20,7 @@ const insertData = (adminData: any, callbackParent: Function) => {
         },
         (cb) => {
             if (!_skip) {
-                Service.AdminService.createRecord(adminData, (err, response) => {
+                Service.AdminService.createRecord(adminData, (err: any) => {
                     if (err) {
                         appLogger.debug("Implementation err", err);
                         cb(err)

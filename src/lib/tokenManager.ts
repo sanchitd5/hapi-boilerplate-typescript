@@ -69,17 +69,17 @@ const setTokenInDB = function (userId: string, userType: string, tokenData: any,
       criteria = { userId, deviceUUID: tokenData.deviceUUID };
     }
   }
-  Services.TokenService.getRecord(criteria, {}, {}, (err, data) => {
+  Services.TokenService.getRecord(criteria, {}, {}, (err: Error, data: any) => {
     if (err) return countBy(err);
     if (data.length === 0) {
-      Services.TokenService.createRecord(objectToCreate, (err) => {
+      Services.TokenService.createRecord(objectToCreate, (err: Error) => {
         if (err) callback(err);
         else {
           callback();
         }
       });
     } else {
-      Services.TokenService.updateRecord(criteria, tokenData, {}, (err) => {
+      Services.TokenService.updateRecord(criteria, tokenData, {}, (err: Error) => {
         if (err) callback(err);
         else {
           callback();
