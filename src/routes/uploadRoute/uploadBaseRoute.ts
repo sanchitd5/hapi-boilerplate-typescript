@@ -1,18 +1,16 @@
-
-
-
+import Hapi from '@hapi/hapi';
 import UniversalFunctions from "../../utils/universalFunctions";
 import Joi from "joi";
 import Controller from "../../controllers";
 
-const uploadImage =
+const uploadImage: Hapi.ServerRoute =
 {
   method: 'POST',
   path: '/api/upload/uploadImage',
-  handler: function (request, reply) {
+  handler: (request: any, reply: any) => {
     var payloadData = request.payload;
     return new Promise((resolve, reject) => {
-      Controller.UploadBaseController.uploadImage(payloadData, function (err, data) {
+      Controller.UploadBaseController.uploadImage(payloadData, (err: Error, data: any) => {
         if (err) {
           reject(UniversalFunctions.sendError(err));
         } else {
@@ -48,14 +46,14 @@ const uploadImage =
 }
 
 
-const uploadVideo =
+const uploadVideo: Hapi.ServerRoute =
 {
   method: 'POST',
   path: '/api/upload/uploadVideo',
-  handler: function (request, reply) {
+  handler: (request: any, reply: any) => {
     var payloadData = request.payload;
     return new Promise((resolve, reject) => {
-      Controller.UploadBaseController.uploadVideo(payloadData, function (err, data) {
+      Controller.UploadBaseController.uploadVideo(payloadData, (err: Error, data: any) => {
         if (err) {
           reject(UniversalFunctions.sendError(err));
         } else {
@@ -91,14 +89,14 @@ const uploadVideo =
 }
 
 
-const uploadDocument =
+const uploadDocument: Hapi.ServerRoute =
 {
   method: 'POST',
   path: '/api/upload/uploadDocument',
-  handler: function (request, reply) {
+  handler: (request: any, reply: any) => {
     var payloadData = request.payload;
     return new Promise((resolve, reject) => {
-      Controller.UploadBaseController.uploadDocument(payloadData, function (err, data) {
+      Controller.UploadBaseController.uploadDocument(payloadData, (err: Error, data: any) => {
         if (err) {
           reject(UniversalFunctions.sendError(err));
         } else {
@@ -133,6 +131,9 @@ const uploadDocument =
   }
 };
 
-export default [
+const routes: Hapi.ServerRoute[] = [
   uploadImage, uploadDocument, uploadVideo
 ];
+
+
+export default routes;

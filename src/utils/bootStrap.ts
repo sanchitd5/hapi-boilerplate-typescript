@@ -42,11 +42,11 @@ const insertData = (adminData: any, callbackParent: Function) => {
 };
 
 const bootstrapAdmin = (callbackParent: Function) => {
-    var taskToRunInParallel: async.AsyncFunction<unknown, Error>[] = [];
+    const taskToRunInParallel: async.AsyncFunction<unknown, Error>[] = [];
     superAdmins.forEach((admin) => {
         taskToRunInParallel.push(((admin) => {
             return (embeddedCB: Function) => {
-                let adminData = {
+                const adminData = {
                     emailId: admin.email,
                     password: UniversalFunctions.CryptData(admin.password),
                     fullName: admin.name,

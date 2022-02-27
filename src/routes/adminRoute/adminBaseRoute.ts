@@ -1,24 +1,22 @@
-
+import Hapi from '@hapi/hapi';
 import UniversalFunctions from "../../utils/universalFunctions";
 import Joi from "joi";
 import Controller from "../../controllers";
 import Config from '../../config';
 
 
-const adminLogin = {
+const adminLogin: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/login",
   options: {
     description: "Admin Login",
     tags: ["api", "admin"],
-    handler: (request, h) => {
+    handler: (request) => {
       return new Promise((resolve, reject) => {
-        Controller.AdminBaseController.adminLogin(request.payload, (error, data) => {
-          if (error)
-            reject(UniversalFunctions.sendError(error));
-          else {
-            resolve(UniversalFunctions.sendSuccess(null, data));
-          }
+        Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
+          if (error) return reject(UniversalFunctions.sendError(error));
+          resolve(UniversalFunctions.sendSuccess(null, data));
+
         });
       });
     },
@@ -43,7 +41,7 @@ const adminLogin = {
   }
 };
 
-const accessTokenLogin = {
+const accessTokenLogin: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/accessTokenLogin",
   handler: function (request, h) {
@@ -53,19 +51,13 @@ const accessTokenLogin = {
       request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.accessTokenLogin(userData, function (
-        err,
-        data
-      ) {
-        if (!err) {
-          resolve(UniversalFunctions.sendSuccess(null, data));
-        } else {
-          reject(UniversalFunctions.sendError(err));
-        }
+      Controller.AdminBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
+        if (err) return reject(UniversalFunctions.sendError(err));
+        resolve(UniversalFunctions.sendSuccess(null, data));
       });
     });
   },
-  config: {
+  options: {
     description: "access token login",
     tags: ["api", "admin"],
     auth: "UserAuth",
@@ -82,7 +74,7 @@ const accessTokenLogin = {
   }
 };
 
-const createAdmin = {
+const createAdmin: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/createAdmin",
   handler: function (request, h) {
@@ -91,7 +83,7 @@ const createAdmin = {
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    let payloadData = request.payload;
+    let payloadData: any = request.payload;
     return new Promise((resolve, reject) => {
       if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
         reject(
@@ -105,12 +97,9 @@ const createAdmin = {
         Controller.AdminBaseController.createAdmin(
           userData,
           payloadData,
-          function (err, data) {
-            if (!err) {
-              resolve(UniversalFunctions.sendSuccess(null, data));
-            } else {
-              reject(UniversalFunctions.sendError(err));
-            }
+          (err: Error, data: any) => {
+            if (err) return reject(UniversalFunctions.sendError(err));
+            resolve(UniversalFunctions.sendSuccess(null, data));
           }
         );
       }
@@ -139,7 +128,7 @@ const createAdmin = {
   }
 };
 
-const getAdmin = {
+const getAdmin: Hapi.ServerRoute = {
   method: "GET",
   path: "/api/admin/getAdmin",
   handler: function (request, h) {
@@ -149,7 +138,7 @@ const getAdmin = {
         request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.getAdmin(userData, function (err, data) {
+      Controller.AdminBaseController.getAdmin(userData, (err: Error, data: any) => {
         if (!err) {
           resolve(UniversalFunctions.sendSuccess(null, data));
         } else {
@@ -158,7 +147,7 @@ const getAdmin = {
       });
     });
   },
-  config: {
+  options: {
     description: "get all sub admin list",
     tags: ["api", "admin"],
     auth: "UserAuth",
@@ -175,7 +164,7 @@ const getAdmin = {
   }
 };
 
-const blockUnblockAdmin = {
+const blockUnblockAdmin: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockAdmin",
   handler: function (request, h) {
@@ -189,12 +178,9 @@ const blockUnblockAdmin = {
       Controller.AdminBaseController.blockUnblockAdmin(
         userData,
         payloadData,
-        function (err, data) {
-          if (!err) {
-            resolve(UniversalFunctions.sendSuccess(null, data));
-          } else {
-            reject(UniversalFunctions.sendError(err));
-          }
+        (err: Error, data: any) => {
+          if (err) return reject(UniversalFunctions.sendError(err));
+          resolve(UniversalFunctions.sendSuccess(null, data));
         }
       );
     });
@@ -220,7 +206,7 @@ const blockUnblockAdmin = {
   }
 };
 
-const createUser = {
+const createUser: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/createUser",
   handler: function (request, h) {
@@ -229,9 +215,8 @@ const createUser = {
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    let payloadData = request.payload;
     return new Promise((resolve, reject) => {
-      if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
+      if (!UniversalFunctions.verifyEmailFormat((request.payload as any).emailId)) {
         reject(
           UniversalFunctions.sendError(
             UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR
@@ -242,8 +227,8 @@ const createUser = {
       else {
         Controller.AdminBaseController.createUser(
           userData,
-          payloadData,
-          function (err, data) {
+          request.payload,
+          (err: Error, data: any) => {
             if (!err) {
               resolve(UniversalFunctions.sendSuccess(null, data));
             } else {
@@ -292,7 +277,7 @@ const createUser = {
   }
 };
 
-const getUser = {
+const getUser: Hapi.ServerRoute = {
   method: "GET",
   path: "/api/admin/getUser",
   handler: function (request, h) {
@@ -302,7 +287,7 @@ const getUser = {
         request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.getUser(userData, function (err, data) {
+      Controller.AdminBaseController.getUser(userData, (err: Error, data: any) => {
         if (!err) {
           resolve(UniversalFunctions.sendSuccess(null, data));
         } else {
@@ -328,7 +313,7 @@ const getUser = {
   }
 };
 
-const blockUnblockUser = {
+const blockUnblockUser: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockUser",
   handler: function (request, h) {
@@ -342,7 +327,7 @@ const blockUnblockUser = {
       Controller.AdminBaseController.blockUnblockUser(
         userData,
         payloadData,
-        function (err, data) {
+        (err: Error, data: any) => {
           if (!err) {
             resolve(UniversalFunctions.sendSuccess(null, data));
           } else {
@@ -373,7 +358,7 @@ const blockUnblockUser = {
   }
 };
 
-const changePassword = {
+const changePassword: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/changePassword",
   handler: function (request, h) {
@@ -386,7 +371,7 @@ const changePassword = {
       Controller.AdminBaseController.changePassword(
         userData,
         request.payload,
-        function (err, user) {
+        (err: Error, user: any) => {
           if (!err) {
             resolve(
               UniversalFunctions.sendSuccess(
@@ -424,7 +409,7 @@ const changePassword = {
   }
 };
 
-const logoutAdmin = {
+const logoutAdmin: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/logout",
   options: {
@@ -438,17 +423,16 @@ const logoutAdmin = {
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.AdminBaseController.logoutAdmin(userData, function (
-          err,
-          data
-        ) {
+        Controller.AdminBaseController.logoutAdmin(userData, (
+          err: Error
+        ) => {
           if (err) {
             reject(UniversalFunctions.sendError(err));
           } else {
             resolve(
               UniversalFunctions.sendSuccess(
                 UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS
-                  .LOGOUT
+                  .LOGOUT, {}
               )
             );
           }
@@ -468,7 +452,7 @@ const logoutAdmin = {
   }
 };
 
-export default [
+const adminBaseRoutes: Hapi.ServerRoute[] = [
   adminLogin,
   accessTokenLogin,
   createAdmin,
@@ -480,3 +464,5 @@ export default [
   changePassword,
   logoutAdmin
 ];
+
+export default adminBaseRoutes;

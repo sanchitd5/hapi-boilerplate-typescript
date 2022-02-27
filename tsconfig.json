@@ -5,12 +5,14 @@
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
-        "allowJs": true, 
+        "allowJs": true,
+    },
+    "ts-node": {
+        "files": true,
     },
     "include": [
         "src"
     ],
-    "files": true,
     "exclude": [
         "node_modules"
     ]

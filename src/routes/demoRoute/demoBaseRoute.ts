@@ -1,31 +1,26 @@
-
+import Hapi from '@hapi/hapi';
 import UniversalFunctions from "../../utils/universalFunctions";
 import Joi from "joi";
 import Controller from "../../controllers";
 
 const Config = UniversalFunctions.CONFIG;
 
-const demoApi = {
+const demoApi: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/demo/demoApi",
   options: {
     description: "demo api",
     tags: ["api", "demo"],
-    handler: function (request, h) {
-      var payloadData = request.payload;
+    handler: (request) => {
       return new Promise((resolve, reject) => {
-        Controller.DemoBaseController.demoFunction(payloadData, function (
-          err,
-          data
-        ) {
-          if (err) reject(UniversalFunctions.sendError(err));
-          else
-            resolve(
-              UniversalFunctions.sendSuccess(
-                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT,
-                data
-              )
-            );
+        Controller.DemoBaseController.demoFunction(request.payload, (err: Error, data: any) => {
+          if (err) return reject(UniversalFunctions.sendError(err));
+          resolve(
+            UniversalFunctions.sendSuccess(
+              Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT,
+              data
+            )
+          );
         });
       });
     },
@@ -44,5 +39,5 @@ const demoApi = {
   }
 };
 
-const DemoBaseRoute = [demoApi];
+const DemoBaseRoute: Hapi.ServerRoute[] = [demoApi];
 export default DemoBaseRoute;

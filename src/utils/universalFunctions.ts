@@ -23,7 +23,7 @@ const sendError = (data: any) => {
   console.trace('ERROR OCCURED ', data)
   if (typeof data == 'object' && data.hasOwnProperty('statusCode') && data.hasOwnProperty('customMessage')) {
     appLogger.info('attaching resposnetype', data.type)
-    let errorToSend = new Boom.Boom(data.customMessage, { statusCode: data.statusCode });
+    const errorToSend = new Boom.Boom(data.customMessage, { statusCode: data.statusCode });
     errorToSend.output.payload.responseType = data.type;
     return errorToSend;
   } else {
@@ -46,7 +46,7 @@ const sendError = (data: any) => {
     } else {
       errorToSend = data
     }
-    var customErrorMessage = errorToSend;
+    let customErrorMessage = errorToSend;
     if (typeof customErrorMessage == 'string') {
       if (errorToSend.indexOf("[") > -1) {
         customErrorMessage = errorToSend.substr(errorToSend.indexOf("["));
@@ -70,7 +70,7 @@ const sendSuccess = (successMsg: any, data: any) => {
   }
 };
 const failActionFunction = (request: any, reply: any, error: any) => {
-  var customErrorMessage = '';
+  let customErrorMessage = '';
   if (error.output.payload.message.indexOf("[") > -1) {
     customErrorMessage = error.output.payload.message.substr(error.output.payload.message.indexOf("["));
   } else {
@@ -94,15 +94,15 @@ const generateRandomString = (stringLength: number) => {
 };
 
 const generateRandomNumber = () => {
-  var num = Math.floor(Math.random() * 90000) + 10000;
+  const num = Math.floor(Math.random() * 90000) + 10000;
   return num;
 };
 
 const generateRandomAlphabet = function (len: number) {
-  var charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  var randomString = '';
-  for (var i = 0; i < len; i++) {
-    var randomPoz = Math.floor(Math.random() * charSet.length);
+  const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let randomString = '';
+  for (let i = 0; i < len; i++) {
+    const randomPoz = Math.floor(Math.random() * charSet.length);
     randomString += charSet.substring(randomPoz, randomPoz + 1);
     randomString = randomString.toUpperCase();
   }
@@ -114,7 +114,7 @@ const CryptData = (stringToCrypt: string) => {
 };
 
 const validateLatLongValues = (lat: number, long: number) => {
-  var valid = true;
+  let valid = true;
   if (lat < -90 || lat > 90) {
     valid = false;
   }
@@ -132,7 +132,7 @@ const validateString = (str: string, pattern: string) => {
 const verifyEmailFormat = (string: string) => {
   return validator.isEmail(string)
 };
-var deleteUnnecessaryUserData = function (userObj: any) {
+const deleteUnnecessaryUserData = function (userObj: any) {
   appLogger.info('deleting>>', userObj)
   delete userObj.__v;
   delete userObj.password;
@@ -141,8 +141,8 @@ var deleteUnnecessaryUserData = function (userObj: any) {
   appLogger.info('deleted', userObj)
   return userObj;
 };
-var generateFilenameWithExtension = function generateFilenameWithExtension(oldFilename: string, newFilename: string) {
-  var ext = oldFilename.substr((~-oldFilename.lastIndexOf(".") >>> 0) + 2);
+const generateFilenameWithExtension = function generateFilenameWithExtension(oldFilename: string, newFilename: string) {
+  const ext = oldFilename.substr((~-oldFilename.lastIndexOf(".") >>> 0) + 2);
   return newFilename + '.' + ext;
 }
 
@@ -159,25 +159,25 @@ function isEmpty(obj: any) {
   // Otherwise, does it have any properties of its own?
   // Note that this doesn't handle
   // toString and toValue enumeration bugs in IE < 9
-  for (var key in obj) {
+  for (const key in obj) {
     if (Object.hasOwnProperty.call(obj, key)) return false;
   }
 
   return true;
 }
 
-var getTimestamp = function (inDate?: boolean) {
+const getTimestamp = function (inDate?: boolean) {
   if (inDate)
     return new Date();
 
   return new Date().toISOString();
 };
 
-var createArray = function (List: Array<any>, keyName: string) {
+const createArray = function (List: Array<any>, keyName: string) {
   appLogger.info("create array------>>>>>>>")
-  var IdArray = [];
+  const IdArray = [];
   var keyName = keyName;
-  for (var key in List) {
+  for (const key in List) {
     if (List.hasOwnProperty(key)) {
       //logger.debug(data[key][keyName]);
       IdArray.push((List[key][keyName]).toString());
@@ -203,7 +203,7 @@ const checkFileExtension = (fileName: string) =>
  * @returns {Object} Cleaned Version of the object. 
  */
 const cleanObject = (obj: any, callback?: Function) => {
-  let newObj: any = Object.keys(obj)
+  const newObj: any = Object.keys(obj)
     .filter(k => obj[k] != undefined && obj[k] != null && obj[k] != '') // Remove undef. and null.
     .reduce(
       (newObj, k) =>

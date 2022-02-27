@@ -9,8 +9,6 @@ import Path from "path";
 import BootStrap from "../utils/bootStrap";
 import Routes from "../routes";
 import fs from 'fs-extra';
-import '../global';
-
 
 /**
  * @description Helper file for the server

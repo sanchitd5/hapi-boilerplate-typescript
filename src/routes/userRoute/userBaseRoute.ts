@@ -1,3 +1,4 @@
+import Hapi from '@hapi/hapi';
 import UniversalFunctions from "../../utils/universalFunctions";
 import Joi from "joi";
 import Controller from "../../controllers";
@@ -9,7 +10,7 @@ const userRegister = {
   options: {
     description: "Register a new user",
     tags: ["api", "user"],
-    handler: (request, h) => {
+    handler: (request: any) => {
       const payloadData = request.payload;
       return new Promise((resolve, reject) => {
         if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId))
@@ -18,7 +19,7 @@ const userRegister = {
               .INVALID_EMAIL_FORMAT)
           );
         else {
-          Controller.UserBaseController.createUser(payloadData, (err, data) => {
+          Controller.UserBaseController.createUser(payloadData, (err: Error, data: any) => {
             if (err) reject(UniversalFunctions.sendError(err));
             else resolve(
               UniversalFunctions.sendSuccess(
@@ -57,11 +58,11 @@ const verifyOTP = {
     auth: "UserAuth",
     description: "Verify OTP for User",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const payloadData = request.payload;
       const userData = (request.auth && request.auth.credentials && request.auth.credentials.userData) || null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.verifyOTP({ data: payloadData, userData }, (err, data) => {
+        Controller.UserBaseController.verifyOTP({ data: payloadData, userData }, (err: Error, data: any) => {
           if (err) reject(UniversalFunctions.sendError(err));
           else {
             resolve(
@@ -97,23 +98,24 @@ const login = {
   options: {
     description: "Login Via Phone Number & Password For User",
     tags: ["api", "user"],
-    handler: (request, h) => {
+    handler: (request: any) => {
       const payloadData = request.payload;
-      if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
-        reject(
-          UniversalFunctions.sendError(
-            UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR
-              .INVALID_EMAIL_FORMAT
-          )
-        );
-      } else {
-        return new Promise((resolve, reject) => {
-          Controller.UserBaseController.loginUser(payloadData, (err, data) => {
+      return new Promise((resolve, reject) => {
+        if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
+          reject(
+            UniversalFunctions.sendError(
+              UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR
+                .INVALID_EMAIL_FORMAT
+            )
+          );
+        } else {
+          Controller.UserBaseController.loginUser(payloadData, (err: Error, data: any) => {
             if (err) reject(UniversalFunctions.sendError(err));
             else resolve(UniversalFunctions.sendSuccess(null, data));
           });
-        });
-      }
+        }
+      });
+
     },
     validate: {
       payload: Joi.object({
@@ -143,14 +145,14 @@ const resendOTP = {
     description: "Resend OTP for Customer",
     tags: ["api", "customer"],
     auth: "UserAuth",
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData =
         (request.auth &&
           request.auth.credentials &&
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.resendOTP(userData, function (err, data) {
+        Controller.UserBaseController.resendOTP(userData, (err: Error, data: any) => {
           if (err) {
             reject(UniversalFunctions.sendError(err));
           } else {
@@ -184,16 +186,12 @@ const getOTP = {
   options: {
     description: "get OTP for Customer",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData = request.query;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.getOTP(userData, function (
-          error,
-          success
-        ) {
-          if (error) {
-            reject(UniversalFunctions.sendError(error));
-          } else {
+        Controller.UserBaseController.getOTP(userData, (error: Error, success: any) => {
+          {
+            if (error) return reject(UniversalFunctions.sendError(error));
             resolve(
               UniversalFunctions.sendSuccess(
                 UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS
@@ -227,7 +225,7 @@ const accessTokenLogin = {
   options: {
     description: "access token login",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData =
         (request.auth &&
           request.auth.credentials &&
@@ -235,10 +233,7 @@ const accessTokenLogin = {
         null;
       const data = request.payload;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.accessTokenLogin(userData, function (
-          err,
-          data
-        ) {
+        Controller.UserBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
           if (!err) {
             resolve(UniversalFunctions.sendSuccess(null, data));
           } else {
@@ -268,24 +263,21 @@ const logoutCustomer = {
     description: "Logout user",
     auth: "UserAuth",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData =
         (request.auth &&
           request.auth.credentials &&
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.logoutCustomer(userData, function (
-          err,
-          data
-        ) {
+        Controller.UserBaseController.logoutCustomer(userData, (err: Error, data: any) => {
           if (err) {
             reject(UniversalFunctions.sendError(err));
           } else {
             resolve(
               UniversalFunctions.sendSuccess(
                 UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS
-                  .LOGOUT
+                  .LOGOUT, {}
               )
             );
           }
@@ -312,7 +304,7 @@ const getProfile = {
     description: "get profile of user",
     auth: "UserAuth",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData =
         (request.auth &&
           request.auth.credentials &&
@@ -320,10 +312,7 @@ const getProfile = {
         null;
       return new Promise((resolve, reject) => {
         if (userData && userData._id) {
-          Controller.UserBaseController.getProfile(userData, function (
-            error,
-            success
-          ) {
+          Controller.UserBaseController.getProfile(userData, (error: Error, success: any) => {
             if (error) {
               reject(UniversalFunctions.sendError(error));
             } else {
@@ -365,7 +354,7 @@ const changePassword = {
   options: {
     description: "change Password",
     tags: ["api", "customer"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const userData =
         (request.auth &&
           request.auth.credentials &&
@@ -375,7 +364,7 @@ const changePassword = {
         Controller.UserBaseController.changePassword(
           userData,
           request.payload,
-          function (err, user) {
+          (err: Error, user: any) => {
             if (!err) {
               resolve(
                 UniversalFunctions.sendSuccess(
@@ -416,7 +405,7 @@ const forgotPassword = {
   options: {
     description: "forgot password",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const payloadData = request.payload;
       return new Promise((resolve, reject) => {
         if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
@@ -429,7 +418,7 @@ const forgotPassword = {
         } else {
           Controller.UserBaseController.forgetPassword(
             request.payload,
-            function (error, success) {
+            (error: Error, success: any) => {
               if (error) {
                 reject(UniversalFunctions.sendError(error));
               } else {
@@ -467,7 +456,7 @@ const resetPassword = {
   options: {
     description: "reset password",
     tags: ["api", "user"],
-    handler: function (request, h) {
+    handler: (request: any) => {
       const payloadData = request.payload;
       return new Promise((resolve, reject) => {
         if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
@@ -478,10 +467,7 @@ const resetPassword = {
             )
           );
         } else {
-          Controller.UserBaseController.resetPassword(request.payload, function (
-            error,
-            success
-          ) {
+          Controller.UserBaseController.resetPassword(request.payload, (error: Error, success: any) => {
             if (error) {
               reject(UniversalFunctions.sendError(error));
             } else {
@@ -517,7 +503,7 @@ const resetPassword = {
   }
 };
 
-export default [
+const userBaseRoutes: Hapi.ServerRoute[] = [
   userRegister,
   verifyOTP,
   login,
@@ -530,3 +516,5 @@ export default [
   forgotPassword,
   resetPassword
 ];
+
+export default userBaseRoutes;

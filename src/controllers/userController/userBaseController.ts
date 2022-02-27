@@ -24,7 +24,7 @@ class UserBaseController extends GenericController {
     createUser = (payloadData: any, callback: Function) => {
         let accessToken: string;
         let uniqueCode: number;
-        let dataToSave = payloadData;
+        const dataToSave = payloadData;
         if (dataToSave.password)
             dataToSave.password = this.universalFunctions.CryptData(dataToSave.password);
         let customerData: any;
@@ -32,7 +32,7 @@ class UserBaseController extends GenericController {
         this.async.series(
             [
                 (cb) => {
-                    var query = {
+                    const query = {
                         $or: [{ emailId: payloadData.emailId }]
                     };
                     this.services.UserService.getRecord(query, {}, { lean: true }, (error: any, data: any) => {
@@ -226,11 +226,11 @@ class UserBaseController extends GenericController {
     };
 
     loginUser = (payloadData: any, callback: Function) => {
-        var userFound: any;
-        var accessToken: string;
-        var successLogin: boolean = false;
-        var appVersion: any;
-        var updatedUserDetails: any;
+        let userFound: any;
+        let accessToken: string;
+        let successLogin = false;
+        let appVersion: any;
+        let updatedUserDetails: any;
         this.async.series(
             [
                 (cb) => {
@@ -349,8 +349,8 @@ class UserBaseController extends GenericController {
            Insert It Into Customer DB
            Send Back Response
            */
-        var uniqueCode: number;
-        var customerData;
+        let uniqueCode: number;
+        let customerData;
         this.async.series(
             [
                 (cb) => {
@@ -414,9 +414,9 @@ class UserBaseController extends GenericController {
     };
 
     accessTokenLogin = (payload: any, callback: Function) => {
-        var appVersion: any;
+        let appVersion: any;
         const userData = payload;
-        var userFound: any;
+        let userFound: any;
         this.async.series(
             [
                 (cb) => {
@@ -473,7 +473,7 @@ class UserBaseController extends GenericController {
         this.services.UserService.getRecord(query, projection, {}, (err: Error, data: any) => {
             if (err) return callback(err);
             if (!this.checkIfTokenValid(data, callback)) return;
-            let customerData = (data && data[0]) || null;
+            const customerData = (data && data[0]) || null;
             if (customerData.isBlocked) return callback(this.ERROR.ACCOUNT_BLOCKED as any);
             callback();
         });
@@ -528,7 +528,7 @@ class UserBaseController extends GenericController {
                     });
                 },
                 (callback) => {
-                    var dataToUpdate;
+                    let dataToUpdate;
                     if (payloadData.skip == true && customerData.firstLogin == false) {
                         dataToUpdate = { $set: { firstLogin: true }, $unset: { initialPassword: 1 } };
                     }
@@ -541,7 +541,7 @@ class UserBaseController extends GenericController {
                     else {
                         dataToUpdate = { $set: { password: newPassword } };
                     }
-                    var condition = { _id: userData.userId };
+                    const condition = { _id: userData.userId };
                     this.services.UserService.updateRecord(condition, dataToUpdate, {}, (
                         err: Error,
                         user: any
@@ -560,13 +560,13 @@ class UserBaseController extends GenericController {
     };
 
     forgetPassword = (payloadData: any, callback: Function) => {
-        var dataFound: any;
-        var code: any;
-        var forgotDataEntry: any;
+        let dataFound: any;
+        let code: any;
+        let forgotDataEntry: any;
         this.async.series(
             [
                 (cb) => {
-                    var query = {
+                    const query = {
                         emailId: payloadData.emailId
                     };
                     this.services.UserService.getRecord(query, {
@@ -596,10 +596,10 @@ class UserBaseController extends GenericController {
                     );
                 },
                 (cb) => {
-                    var dataToUpdate = {
+                    const dataToUpdate = {
                         code: code
                     };
-                    var query = {
+                    const query = {
                         _id: dataFound._id
                     };
                     this.services.UserService.updateRecord(query, dataToUpdate, {}, (err: Error) => {
@@ -622,7 +622,7 @@ class UserBaseController extends GenericController {
                     );
                 },
                 (cb) => {
-                    var data = {
+                    const data = {
                         customerID: dataFound._id,
                         requestedAt: Date.now(),
                         userType: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER,
@@ -654,13 +654,13 @@ class UserBaseController extends GenericController {
     };
 
     resetPassword = (payloadData: any, callbackRoute: Function) => {
-        var foundData: any;
-        var customerId: any;
-        var data;
+        let foundData: any;
+        let customerId: any;
+        let data;
         this.async.series(
             [
                 (callback) => {
-                    var query = {
+                    const query = {
                         emailId: payloadData.emailId
                     };
                     this.services.UserService.getRecord(
@@ -695,7 +695,7 @@ class UserBaseController extends GenericController {
                     );
                 },
                 (callback) => {
-                    var query = { customerID: customerId, isChanged: false };
+                    const query = { customerID: customerId, isChanged: false };
                     this.services.ForgetPasswordService.getForgetPasswordRequest(
                         query,
                         { __v: 0 },
@@ -715,7 +715,7 @@ class UserBaseController extends GenericController {
                 },
                 (callback) => {
                     if (!this.universalFunctions.isEmpty(foundData)) {
-                        var minutes = this.universalFunctions.getRange(
+                        const minutes = this.universalFunctions.getRange(
                             foundData.requestedAt,
                             new Date(),
                             this.universalFunctions.CONFIG.APP_CONSTANTS.TIME_UNITS.MINUTES
@@ -730,7 +730,7 @@ class UserBaseController extends GenericController {
                     }
                 },
                 (callback) => {
-                    var dataToUpdate = {
+                    const dataToUpdate = {
                         password: this.universalFunctions.CryptData(payloadData.password)
                     };
                     appLogger.info(dataToUpdate);
@@ -752,7 +752,7 @@ class UserBaseController extends GenericController {
                     );
                 },
                 (callback) => {
-                    var dataToUpdate = {
+                    const dataToUpdate = {
                         isChanged: true,
                         changedAt: this.universalFunctions.getTimestamp()
                     };

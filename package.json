@@ -10,7 +10,7 @@
   "scripts": {
     "start": "ts-node src/entry.ts",
     "nodemon": "nodemon --exec ts-node src/entry.ts",
-    "build": "npx babel src --out-dir build --ignore node_modules",
+    "build": "tsc",
     "deployment": "node build/entry.js",
     "lint": "eslint . --fix"
   },

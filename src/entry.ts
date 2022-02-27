@@ -1,4 +1,4 @@
-import './global.ts';
+import './global';
 import { startMyServer } from "./server/server";
 // Read .env file.
 import 'dotenv/config';
