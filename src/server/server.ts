@@ -28,7 +28,8 @@ const initServer = async () => {
   // Bootstrap Application
   ServerHelper.bootstrap();
 
-  SocketManager.connectSocket(server);
+  // Initiate Socket Server
+  SocketManager.connectSocket((server.info.port ?? process.env.SOCKET_PORT ?? process.env.HAPI_PORT) as number);
 
   ServerHelper.attachLoggerOnEvents(server);
 

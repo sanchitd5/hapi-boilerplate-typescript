@@ -1,5 +1,3 @@
-"use strict";
-
 /**
 * Please use tokenLogger for logging in this file try to abstain from console
 * levels of logging:

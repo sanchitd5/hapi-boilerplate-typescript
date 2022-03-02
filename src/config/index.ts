@@ -7,4 +7,4 @@ export default {
     APP_CONSTANTS,
     AWS_S3_CONFIG,
     DB_CONFIG,
-};
+} as const;

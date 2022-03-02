@@ -1,17 +1,24 @@
+import {
+  FrozenObject,
+  StatusMessages,
+  DatabaseConstants,
+  TimeUnits,
+  FrozenResponseMessage,
+  SwaaggerResponseMessage
+} from "../definations";
 
-
-"use strict";
-const SOCIAL = {
+const SOCIAL: FrozenObject = {
   FACEBOOK: "FACEBOOK"
 };
-const swaggerDefaultResponseMessages = [
+const swaggerDefaultResponseMessages: Array<SwaaggerResponseMessage> = [
   { code: 200, message: "OK" },
   { code: 400, message: "Bad Request" },
   { code: 401, message: "Unauthorized" },
   { code: 404, message: "Data Not Found" },
   { code: 500, message: "Internal Server Error" }
 ];
-const DATABASE = {
+
+const DATABASE: DatabaseConstants = {
   DEVICE_TYPES: {
     ANDROID: "ANDROID",
     IOS: "IOS",
@@ -24,7 +31,7 @@ const DATABASE = {
   }
 };
 
-const STATUS_MSG = {
+const STATUS_MSG: StatusMessages = {
   ERROR: {
     DEFAULT: {
       statusCode: 400,
@@ -248,9 +255,9 @@ const STATUS_MSG = {
   }
 };
 
-const notificationMessages = {};
+const notificationMessages: FrozenObject = {};
 
-const TIME_UNITS = {
+const TIME_UNITS: TimeUnits = {
   MONTHS: "months",
   HOURS: "hours",
   MINUTES: "minutes",
@@ -259,7 +266,7 @@ const TIME_UNITS = {
   DAYS: "days"
 };
 
-const CUSTOM_ERROR_404 = (msg: string) => {
+const CUSTOM_ERROR_404 = (msg: string): FrozenResponseMessage => {
   return {
     statusCode: 404,
     customMessage: msg + " NOT FOUND",
@@ -267,10 +274,11 @@ const CUSTOM_ERROR_404 = (msg: string) => {
   };
 };
 
-const CUSTOM_ERROR = function (msg: string, statusCode: number) {
+const CUSTOM_ERROR = function (msg: string, statusCode?: number): FrozenResponseMessage {
   return {
     statusCode: statusCode || 400,
-    customMessage: msg
+    customMessage: msg,
+    type: "CUSTOM"
   };
 };
 
@@ -284,4 +292,4 @@ export default {
   notificationMessages,
   CUSTOM_ERROR_404,
   CUSTOM_ERROR
-}
+} as const;

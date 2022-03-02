@@ -125,11 +125,11 @@ class UserBaseController extends GenericController {
                             id: customerData._id,
                             type: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER
                         };
-                        const deviceData = {
+                        const deviceData: { deviceName: string, deviceType: string, deviceUUID: string } = {
                             deviceName: payloadData.deviceData.deviceName,
                             deviceType: payloadData.deviceData.deviceType,
                             deviceUUID: payloadData.deviceData.deviceUUID,
-                        }
+                        };
                         TokenManager.setToken(tokenData, deviceData, (err: Error, output: any) => {
                             if (err) cb(err);
                             else {

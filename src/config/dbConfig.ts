@@ -7,6 +7,6 @@ const mongo = {
 
 export default {
     mongo
-};
+} as const;
 
 

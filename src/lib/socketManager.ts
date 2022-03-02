@@ -1,4 +1,3 @@
-import Hapi from "@hapi/hapi";
 import Socket from "socket.io";
 /**
 * Please use socketLogger for logging in this file try to abstain from console
@@ -39,12 +38,17 @@ interface SocketData {
 
 class SocketManager {
 
+    declare private server: Socket.Server;
+
     /**
      * 
-     * @param {Hapi.Server} server HAPI Server
+     * @param {number} port Socket Port
+     * @param {Partial<Socket.ServerOptions>} server Socket options
+     * 
+     * @returns {Socket.Server} Socket Server Instance;
      */
-    connectSocket = (server: Hapi.Server) => {
-        const io = new Socket.Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>();
+    connectSocket = (port: number, options?: Partial<Socket.ServerOptions>) => {
+        const io = new Socket.Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(port, options);
         socketLogger.info("socket server started");
         io.on('connection', (socket) => {
             socketLogger.info("connection established: ", socket.id);
@@ -57,7 +61,12 @@ class SocketManager {
                 }
             };
             socket.emit('message', messageToSend);
-        })
+        });
+        this.server = io;
+    }
+
+    emit(data: SocketEmitMessage) {
+        this.server.emit('message', data);
     }
 }
 

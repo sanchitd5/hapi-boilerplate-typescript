@@ -22,4 +22,4 @@ const s3BucketCredentials = {
 };
 export default {
     s3BucketCredentials: s3BucketCredentials
-};
+} as const;
