@@ -1,7 +1,7 @@
 import Hapi from "@hapi/hapi";
 import Joi from "joi";
 import log4js from "log4js";
-import SwaggerPlugins from "../plugins";
+import SwaggerPlugins from "./plugins";
 import * as handlebars from "handlebars";
 import mongoose from "mongoose";
 import CONFIG from "../config/index";

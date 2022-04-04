@@ -1,5 +1,5 @@
 import Hapi from '@hapi/hapi';
-import TokenManager from '../lib/tokenManager';
+import TokenManager from '../../lib/tokenManager';
 import AuthBearer from 'hapi-auth-bearer-token';
 
 export const register = async function (server: Hapi.Server) {

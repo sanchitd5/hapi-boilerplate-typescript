@@ -1,4 +1,4 @@
-import { GenericObject } from '../definations';
+import { GenericObject } from '../../definations';
 import Models from '../models';
 
 const getForgetPasswordRequest = function (conditions: GenericObject, projection: GenericObject, options: GenericObject, callback: Function) {

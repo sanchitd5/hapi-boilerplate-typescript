@@ -1,5 +1,5 @@
 import GenericMongoService from './genericServices/mongo';
-import ForgetPasswordService from './forgetPasswordService';
+import ForgetPasswordService from './custom/forgetPasswordService';
 
 const services: { [key: string]: any } = {
   UserService: new GenericMongoService('User'),

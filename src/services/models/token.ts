@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import Config from "../config"
+import Config from "../../config"
 
 const token = new Schema({
     deviceType: { type: String, enum: Object.values(Config.APP_CONSTANTS.DATABASE.DEVICE_TYPES), required: true },

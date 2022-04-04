@@ -1,4 +1,4 @@
-import MODELS from "../../models/index";
+import MODELS from "./../models/index";
 import { GenericObject } from '../../definations';
 
 interface GenericServceCallback {
