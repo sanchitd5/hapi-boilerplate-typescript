@@ -12,7 +12,7 @@ const createForgetPasswordRequest = function (data: GenericObject, callback: Fun
     const forgotPasswordEntry = new Models.ForgetPassword(data);
     forgotPasswordEntry.save(function (err: Error, result: any) {
         callback(err, result);
-    })
+    });
 }
 
 export default {

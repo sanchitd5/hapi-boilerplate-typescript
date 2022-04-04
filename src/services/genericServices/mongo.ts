@@ -1,5 +1,5 @@
-import MODELS from "../models/index";
-import { GenericObject } from '../definations';
+import MODELS from "../../models/index";
+import { GenericObject } from '../../definations';
 
 interface GenericServceCallback {
     (err: Error, data: any): void;
@@ -7,9 +7,9 @@ interface GenericServceCallback {
 
 /**
  * @author Sanchit Dang
- * @description Generic Service Template
+ * @description Generic MongoDB Service Template
  */
-export default class GenericService {
+export default class GenericMongoService {
     declare modelName: string;
     declare objects: Array<any>;
 

@@ -146,6 +146,7 @@ class ServerHelper {
   }
 
   async connectMongoDB() {
+    if (!CONFIG.APP_CONFIG.databases.mongo) return mongoLogger.info('MongoDB Disabled');;
     try {
       mongoLogger.debug('Trying to make connection to DB');
       await mongoose.connect(CONFIG.DB_CONFIG.mongo.URI);

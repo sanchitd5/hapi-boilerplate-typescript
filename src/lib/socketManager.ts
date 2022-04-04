@@ -1,4 +1,6 @@
+import Hapi from '@hapi/hapi';
 import Socket from "socket.io";
+import config from '../config';
 /**
 * Please use socketLogger for logging in this file try to abstain from console
 * levels of logging:
@@ -36,19 +38,18 @@ interface SocketData {
     age: number;
 }
 
-class SocketManager {
-
+class SocketManager { 
     declare private server: Socket.Server;
 
     /**
+     * @param {Hapi.Server} server Hapi Server
+     * @param {Partial<Socket.ServerOptions>} options Socket options
      * 
-     * @param {number} port Socket Port
-     * @param {Partial<Socket.ServerOptions>} server Socket options
-     * 
-     * @returns {Socket.Server} Socket Server Instance;
+     * @returns {Socket.Server|void} Socket Server Instance;
      */
-    connectSocket = (port: number, options?: Partial<Socket.ServerOptions>) => {
-        const io = new Socket.Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(port, options);
+    connectSocket(server: Hapi.Server, options?: Partial<Socket.ServerOptions>) {
+        if (!config.APP_CONFIG.useSocket) return socketLogger.info("socket server disabled");;
+        const io = new Socket.Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
         socketLogger.info("socket server started");
         io.on('connection', (socket) => {
             socketLogger.info("connection established: ", socket.id);
