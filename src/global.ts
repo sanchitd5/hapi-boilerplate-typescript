@@ -1,10 +1,17 @@
-import Log4js from "log4js";
+import { Logger } from "log4js";
+import { BaseEnvironment } from "./definations";
 
 declare global {
     var appRoot: string;
-    var appLogger: Log4js.Logger;
-    var uploadLogger: Log4js.Logger;
-    var socketLogger: Log4js.Logger;
-    var tokenLogger: Log4js.Logger;
-    var mongoLogger: Log4js.Logger;
+    var appLogger: Logger;
+    var uploadLogger: Logger;
+    var socketLogger: Logger;
+    var tokenLogger: Logger;
+    var mongoLogger: Logger;
+    // declare custom global variables here
+    namespace NodeJS {
+        interface ProcessEnv extends BaseEnvironment {
+            // declare your environment variables here.
+        }
+    }
 }

@@ -1,5 +1,5 @@
-# Node.js User Onboarding application (Typescript)
-A Node based module using Mongodb to onboard user's into a very basic application, secured using JWT authorization.
+# Node 18 User Onboarding application (Typescript)
+A Node based module to onboard user's into a very basic application, secured using JWT authorization.
 
 The Node.js app uses [Hapi Framework](https://hapijs.com) and [Hapi Swagger](https://github.com/glennjones/hapi-swagger)
 
@@ -47,7 +47,7 @@ $ npm -v
 ```
 $ sudo apt-get install curl python-software-properties
 
-$ curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+$ curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 
 $ sudo apt-get install nodejs
 

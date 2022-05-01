@@ -733,7 +733,6 @@ class UserBaseController extends GenericController {
                     const dataToUpdate = {
                         password: this.universalFunctions.CryptData(payloadData.password)
                     };
-                    appLogger.info(dataToUpdate);
                     this.services.UserService.updateRecord(
                         { _id: customerId },
                         dataToUpdate,

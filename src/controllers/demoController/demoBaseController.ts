@@ -9,7 +9,7 @@ class DemoBaseController extends GenericController {
     * @param {Function} callback 
      */
     demoFunction = (payload: any, callback: Function) => {
-        appLogger.info(payload.message); 
+        global.appLogger.info(payload.message); 
         return callback(null, payload);
     };
 }

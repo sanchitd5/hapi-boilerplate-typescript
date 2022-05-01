@@ -1,10 +1,10 @@
 {
-    "extends": "@tsconfig/node16/tsconfig.json",
+    "extends": "@tsconfig/node18/tsconfig.json",
     "compilerOptions": {
         "outDir": "build",
-        "target": "es6",
+        "target": "ES6",
         "module": "commonjs",
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "allowJs": true,
     },
     "ts-node": {

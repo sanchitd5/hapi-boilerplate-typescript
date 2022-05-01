@@ -26,7 +26,7 @@ class UploadBaseController extends GenericController {
         thumbnail: null
       }
     }
-    appLogger.info("????????", this.universalFunctions.checkFileExtension(imageFile.hapi.filename))
+    global.appLogger.info("????????", this.universalFunctions.checkFileExtension(imageFile.hapi.filename))
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("imageFile") && imageFile && imageFile.hapi.filename) {
@@ -61,7 +61,7 @@ class UploadBaseController extends GenericController {
         thumbnail: null
       }
     }
-    appLogger.info("????????", this.universalFunctions.checkFileExtension(videoFile.hapi.filename))
+    global.appLogger.info("????????", this.universalFunctions.checkFileExtension(videoFile.hapi.filename))
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("videoFile") && videoFile && videoFile.hapi.filename) {

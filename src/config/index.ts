@@ -11,11 +11,11 @@ class AppConfig {
     constructor() {
         this.databases = {
             mongo: false,
-            postgres: true,
-            mysql: true
+            postgres: false,
+            mysql: false
         };
-        this.userDatabase = DATABASE.MONGODB;
-        this.adminDatabase = DATABASE.MONGODB;
+        this.userDatabase = DATABASE.NONE;
+        this.adminDatabase = DATABASE.NONE;
         this.useSocket = false;
     };
 }

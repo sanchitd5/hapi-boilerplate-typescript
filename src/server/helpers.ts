@@ -1,14 +1,12 @@
-import Hapi from "@hapi/hapi";
-import Joi from "joi";
-import log4js from "log4js";
-import SwaggerPlugins from "./plugins";
-import * as handlebars from "handlebars";
-import mongoose from "mongoose";
+import { GenericError } from "../definations";
 import CONFIG from "../config/index";
-import Path from "path";
-import BootStrap from "../utils/bootStrap";
-import Routes from "../routes";
+import { connect as mongooseConnect, disconnect as mongooseDisconnect } from "mongoose";
+import { Server } from "@hapi/hapi";
+import { getLogger, configure as log4jsConfigure } from "log4js";
 import fs from 'fs-extra';
+import Routes from "../routes";
+import BootStrap from "../utils/bootStrap";
+import Plugins from './plugins';
 
 /**
  * @description Helper file for the server
@@ -16,58 +14,64 @@ import fs from 'fs-extra';
 class ServerHelper {
 
   setGlobalAppRoot() {
-    global.appRoot = Path.resolve(__dirname)
+    import('path').then(path => {
+      global.appRoot = path.resolve(__dirname);
+    });
   }
-
 
   bootstrap() {
     BootStrap.bootstrapAdmin((err: any) => {
-      if (err) appLogger.debug(err)
+      if (err) global.appLogger.debug(err)
     });
   }
 
   /**
    * 
-   * @param {Hapi.Server} server 
+   * @param {Server} server 
    */
-  addSwaggerRoutes(server: Hapi.Server) {
+  addSwaggerRoutes(server: Server) {
     server.route(Routes);
   }
 
   /**
    * 
-   * @param {Hapi.Server} server 
+   * @param {Server} server 
    */
-  attachLoggerOnEvents(server: Hapi.Server) {
+  attachLoggerOnEvents(server: Server) {
     server.events.on("response", (request: any) => {
-      appLogger.info(
+      global.appLogger.info(
         `${request.info.remoteAddress} : ${request.method.toUpperCase()} ${request.url.pathname} --> ${request.response.statusCode}`);
-      appLogger.info("Request payload:", request.payload);
+      global.appLogger.info("Request payload:", request.payload);
     });
   }
 
+  removeListeners(server: Server) {
+    server.events.removeAllListeners('response');
+  }
+
   /**
-   * @returns {Hapi.Server} A Hapi Server
+   * @returns {Server} A Hapi Server
    */
-  createServer(): Hapi.Server {
-    const server = new Hapi.Server({
+  async createServer(): Promise<Server> {
+    const server = new Server({
       app: {
         name: process.env.APP_NAME || "default"
       },
       port: process.env.HAPI_PORT || 8000,
       routes: { cors: true }
     });
-    server.validator(Joi);
+    server.validator(await import('joi'));
     return server;
   }
 
   /**
    * @author Sanchit Dang
    * @description Adds Views to the server
-   * @param {Hapi.Server} server 
+   * @param {Server} server 
    */
-  addViews(server: Hapi.Server) {
-    (server as any).views({
+  async addViews(server: Server) {
+    const handlebars = await import('handlebars')
+    server.views({
       engines: {
         html: handlebars
       },
@@ -79,10 +83,10 @@ class ServerHelper {
   /**
    * @author Sanchit Dang
    * @description sets default route for the server
-   * @param {Hapi.Server} server HAPI Server
-   * @param {String} defaultRoute Optional - default route
+   * @param {Server} server HAPI Server
+   * @param {string} defaultRoute Optional - default route
    */
-  setDefaultRoute(server: Hapi.Server, defaultRoute?: string) {
+  setDefaultRoute(server: Server, defaultRoute?: string) {
     if (defaultRoute === undefined) defaultRoute = "/"
     server.route({
       method: "GET",
@@ -95,20 +99,22 @@ class ServerHelper {
 
   /**
    * 
-   * @param {Hapi.Server} server HAPI Server
+   * @param {Server} server HAPI Server
    */
-  async registerPlugins(server: Hapi.Server) {
+  async registerPlugins(server: Server) {
     try {
-      await (server as any).register(SwaggerPlugins);
+      await server.register(Plugins as any);
       server.log(["info"], "Plugins Loaded");
     } catch (e) {
       server.log(["error"], "Error while loading plugins : " + e);
+    } finally {
+      return server;
     }
   }
 
   configureLog4js = () => {
     // Configuration for log4js.
-    log4js.configure({
+    log4jsConfigure({
       appenders: {
         App: { type: 'console' },
         Upload_Manager: { type: 'console' },
@@ -125,35 +131,47 @@ class ServerHelper {
       }
     });
     // Global Logger variables for logging
-    global.appLogger = log4js.getLogger('App');
-    global.uploadLogger = log4js.getLogger('Upload_Manager');
-    global.socketLogger = log4js.getLogger('Socket_Manager');
-    global.tokenLogger = log4js.getLogger('Token_Manager');
-    global.mongoLogger = log4js.getLogger('Mongo_Manager');
+    global.appLogger = getLogger('App');
+    global.uploadLogger = getLogger('Upload_Manager');
+    global.socketLogger = getLogger('Socket_Manager');
+    global.tokenLogger = getLogger('Token_Manager');
+    global.mongoLogger = getLogger('Mongo_Manager');
   }
 
   /**
    * 
-   * @param {Hapi.Server} server 
+   * @param {Server} server 
    */
-  async startServer(server: Hapi.Server) {
+  async startServer(server: Server): Promise<Server> {
     try {
       await server.start();
-      appLogger.info("Server running on %s", server.info.uri);
+      global.appLogger.info("Server running on %s", server.info.uri);
     } catch (error) {
-      appLogger.fatal(error);
+      global.appLogger.fatal(error);
     }
+    return server;
   }
 
   async connectMongoDB() {
-    if (!CONFIG.APP_CONFIG.databases.mongo) return mongoLogger.info('MongoDB Disabled');;
+    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Connect : Disabled');;
     try {
-      mongoLogger.debug('Trying to make connection to DB');
-      await mongoose.connect(CONFIG.DB_CONFIG.mongo.URI);
-      mongoLogger.info('MongoDB Connected');
-    } catch (e) {
-      mongoLogger.error("DB Error: ", e);
-      process.exit(1);
+      global.mongoLogger.debug('Trying to make connection to DB');
+      const mongoose = await mongooseConnect(CONFIG.DB_CONFIG.mongo.URI);
+      global.mongoLogger.info('MongoDB Connected');
+      return mongoose;
+    } catch (e: any) {
+      global.mongoLogger.error("DB Connect Error: ", e);
+      throw new GenericError('MONGODB_CONNECT_ERROR', e);
+    }
+  }
+
+  async disconnectMongoDB() {
+    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Disconnect : Disabled');;
+    try {
+      mongooseDisconnect();
+    } catch (e: any) {
+      global.mongoLogger.error("DB Disconnect Error: ", e);
+      throw new GenericError('MONGODB_DISCONNECT_ERROR', e);
     }
   }
 

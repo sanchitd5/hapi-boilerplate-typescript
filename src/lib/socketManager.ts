@@ -1,5 +1,5 @@
-import Hapi from '@hapi/hapi';
-import Socket from "socket.io";
+import { Server } from '@hapi/hapi';
+import { Server as SocketServer, ServerOptions as SocketServerOptions } from "socket.io";
 import config from '../config';
 /**
 * Please use socketLogger for logging in this file try to abstain from console
@@ -38,21 +38,23 @@ interface SocketData {
     age: number;
 }
 
-class SocketManager { 
-    declare private server: Socket.Server;
+class SocketManager {
+    private readonly declare server: SocketServer | undefined;
+    constructor(server: Server, options?: Partial<SocketServerOptions>) {
+        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("socket server disabled");
+        else {
+            const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
+            global.socketLogger.info("socket server initalized");
+            this.server = io;
+        }
+    }
 
     /**
-     * @param {Hapi.Server} server Hapi Server
-     * @param {Partial<Socket.ServerOptions>} options Socket options
-     * 
-     * @returns {Socket.Server|void} Socket Server Instance;
+     * @returns {SocketServer|undefined} Socket Server Instance;
      */
-    connectSocket(server: Hapi.Server, options?: Partial<Socket.ServerOptions>) {
-        if (!config.APP_CONFIG.useSocket) return socketLogger.info("socket server disabled");;
-        const io = new Socket.Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
-        socketLogger.info("socket server started");
-        io.on('connection', (socket) => {
-            socketLogger.info("connection established: ", socket.id);
+    connectSocket(): SocketServer | undefined {
+        this.server?.on('connection', (socket) => {
+            global.socketLogger.info("connection established: ", socket.id);
             const messageToSend: SocketEmitMessage = {
                 message: {
                     type: 'connection',
@@ -63,16 +65,20 @@ class SocketManager {
             };
             socket.emit('message', messageToSend);
         });
-        this.server = io;
+        return this.server;
+    }
+
+    disconnectSocketServer() {
+        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("socket server disabled");;
+        this.server?.disconnectSockets(true);
     }
 
     emit(data: SocketEmitMessage) {
-        this.server.emit('message', data);
+        this.server?.emit('message', data);
     }
 }
 
-const instance = new SocketManager();
-export default instance;
+export default SocketManager;
 
 
 

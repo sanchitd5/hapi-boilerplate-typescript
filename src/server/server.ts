@@ -1,59 +1,81 @@
-
+import { Server as HapiServer } from '@hapi/hapi';
 import ServerHelper from "./helpers";
 import SocketManager from "../lib/socketManager";
 
-/**
- * @author Sanchit Dang
- * @description Initilize HAPI Server
- */
-const initServer = async () => {
+class Server {
+  private declare socketManager: SocketManager;
 
-  await ServerHelper.ensureEnvironmentFileExists();
+  /**
+   * @author Sanchit Dang
+   * @description Initilize HAPI Server
+   */
+  private async initilize(): Promise<HapiServer> {
 
-  //Create Server
-  const server = ServerHelper.createServer();
+    await ServerHelper.ensureEnvironmentFileExists();
 
-  //Register All Plugins
-  await ServerHelper.registerPlugins(server);
+    //Create Server
+    let server = await ServerHelper.createServer();
 
-  //add views
-  ServerHelper.addViews(server);
+    //Register All Plugins
+    server = await ServerHelper.registerPlugins(server);
 
-  //Default Routes
-  ServerHelper.setDefaultRoute(server)
 
-  // Add routes to Swagger documentation
-  ServerHelper.addSwaggerRoutes(server);
+    //Default Routes
+    ServerHelper.setDefaultRoute(server)
 
-  // Bootstrap Application
-  ServerHelper.bootstrap();
+    //add views
+    await ServerHelper.addViews(server);
 
-  // Initiate Socket Server
-  SocketManager.connectSocket(server);
+    // Add routes to Swagger documentation
+    ServerHelper.addSwaggerRoutes(server);
 
-  ServerHelper.attachLoggerOnEvents(server);
+    // Bootstrap Application
+    ServerHelper.bootstrap();
 
-  // Start Server
-  ServerHelper.startServer(server);
+    // Initiate Socket Server
+    this.socketManager = new SocketManager(server);
+    this.socketManager.connectSocket();
+
+    ServerHelper.attachLoggerOnEvents(server);
+
+    // Start Server
+    return await ServerHelper.startServer(server);
+
+  }
+
+  private async shutdownGracefully(server?: HapiServer) {
+    global.appLogger.info('Shutting down gracefully')
+    if (server) {
+      ServerHelper.removeListeners(server);
+      await server.stop();
+    }
+    await ServerHelper.disconnectMongoDB();
+    process.exit(server ? 0 : 1);
+  }
+
+  /**
+   * @author Sanchit Dang
+   * @description Start HAPI Server
+   */
+  async start() {
+    ServerHelper.configureLog4js();
+
+    await ServerHelper.connectMongoDB();
+
+    // Global variable to get app root folder path
+    ServerHelper.setGlobalAppRoot();
+
+    process.on("unhandledRejection", err => {
+      global.appLogger.fatal(err);
+      this.shutdownGracefully();
+    });
+
+    const hapiServer = await this.initilize();
+
+    process.on('SIGINT', () => this.shutdownGracefully(hapiServer));
+    process.on('SIGTERM', () => this.shutdownGracefully(hapiServer))
+  }
+
 }
 
-/**
- * @author Sanchit Dang
- * @description Start HAPI Server
- */
-export const startMyServer = async () => {
-
-  ServerHelper.configureLog4js();
-
-  await ServerHelper.connectMongoDB();
-
-  // Global variable to get app root folder path
-  ServerHelper.setGlobalAppRoot();
-
-  process.on("unhandledRejection", err => {
-    appLogger.fatal(err);
-    process.exit(1);
-  });
-
-  initServer();
-}
+export default Server;
