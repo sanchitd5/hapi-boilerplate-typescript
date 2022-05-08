@@ -8,7 +8,7 @@ const uploadImage: Hapi.ServerRoute =
   method: 'POST',
   path: '/api/upload/uploadImage',
   handler: (request: any, reply: any) => {
-    var payloadData = request.payload;
+    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadImage(payloadData, (err: Error, data: any) => {
         if (err) {
@@ -51,7 +51,7 @@ const uploadVideo: Hapi.ServerRoute =
   method: 'POST',
   path: '/api/upload/uploadVideo',
   handler: (request: any, reply: any) => {
-    var payloadData = request.payload;
+    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadVideo(payloadData, (err: Error, data: any) => {
         if (err) {
@@ -94,7 +94,7 @@ const uploadDocument: Hapi.ServerRoute =
   method: 'POST',
   path: '/api/upload/uploadDocument',
   handler: (request: any, reply: any) => {
-    var payloadData = request.payload;
+    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadDocument(payloadData, (err: Error, data: any) => {
         if (err) {

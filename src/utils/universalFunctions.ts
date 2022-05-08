@@ -17,17 +17,17 @@ import CONFIG from "../config";
 import randomstring from "randomstring";
 import validator from "validator";
 import { DateTime } from "luxon";
+import { GenericObject } from "../definations";
 
 
-const sendError = (data: any) => {
+const sendError = (data: GenericObject | string | boolean) => {
   console.trace('ERROR OCCURED ', data)
   if (typeof data == 'object' && data.hasOwnProperty('statusCode') && data.hasOwnProperty('customMessage')) {
-    appLogger.info('attaching resposnetype', data.type)
     const errorToSend = new Boom.Boom(data.customMessage, { statusCode: data.statusCode });
     errorToSend.output.payload.responseType = data.type;
     return errorToSend;
   } else {
-    let errorToSend = '';
+    let errorToSend: any = '';
     if (typeof data == 'object') {
       if (data.name == 'MongoError') {
         errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage;
@@ -59,15 +59,11 @@ const sendError = (data: any) => {
   }
 };
 
-const sendSuccess = (successMsg: any, data: any) => {
-  successMsg = successMsg || CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT.customMessage;
-  if (typeof successMsg == 'object' && successMsg.hasOwnProperty('statusCode') && successMsg.hasOwnProperty('customMessage')) {
+const sendSuccess = (successMsg: GenericObject | string = CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT.customMessage, data: GenericObject | Array<GenericObject>) => {
+  if (typeof successMsg == 'object' && successMsg.hasOwnProperty('statusCode') && successMsg.hasOwnProperty('customMessage'))
     return { statusCode: successMsg.statusCode, message: successMsg.customMessage, data: data || {} };
+  return { statusCode: 200, message: successMsg, data: data || {} };
 
-  } else {
-    return { statusCode: 200, message: successMsg, data: data || {} };
-
-  }
 };
 const failActionFunction = (request: any, reply: any, error: any) => {
   let customErrorMessage = '';
@@ -125,7 +121,6 @@ const validateLatLongValues = (lat: number, long: number) => {
 };
 
 const validateString = (str: string, pattern: string) => {
-  appLogger.info(str, pattern, str.match(pattern));
   return str.match(pattern);
 };
 
@@ -133,12 +128,10 @@ const verifyEmailFormat = (string: string) => {
   return validator.isEmail(string)
 };
 const deleteUnnecessaryUserData = function (userObj: any) {
-  appLogger.info('deleting>>', userObj)
   delete userObj.__v;
   delete userObj.password;
   delete userObj.registrationDate;
   delete userObj.OTPCode;
-  appLogger.info('deleted', userObj)
   return userObj;
 };
 const generateFilenameWithExtension = function generateFilenameWithExtension(oldFilename: string, newFilename: string) {
@@ -174,12 +167,10 @@ const getTimestamp = function (inDate?: boolean) {
 };
 
 const createArray = function (List: Array<any>, keyName: string) {
-  appLogger.info("create array------>>>>>>>")
   const IdArray = [];
   var keyName = keyName;
   for (const key in List) {
     if (List.hasOwnProperty(key)) {
-      //logger.debug(data[key][keyName]);
       IdArray.push((List[key][keyName]).toString());
     }
   }
@@ -202,8 +193,8 @@ const checkFileExtension = (fileName: string) =>
  * @param {Function} callback callback function which returns cleaned object.
  * @returns {Object} Cleaned Version of the object. 
  */
-const cleanObject = (obj: any, callback?: Function) => {
-  const newObj: any = Object.keys(obj)
+const cleanObject = (obj: GenericObject, callback?: (param: GenericObject) => {}): object => {
+  const newObj: GenericObject = Object.keys(obj)
     .filter(k => obj[k] != undefined && obj[k] != null && obj[k] != '') // Remove undef. and null.
     .reduce(
       (newObj, k) =>

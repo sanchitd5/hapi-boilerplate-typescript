@@ -4,6 +4,7 @@ import SocketManager from "../lib/socketManager";
 
 class Server {
   private declare socketManager: SocketManager;
+  private declare server: HapiServer;
 
   /**
    * @author Sanchit Dang
@@ -14,43 +15,44 @@ class Server {
     await ServerHelper.ensureEnvironmentFileExists();
 
     //Create Server
-    let server = await ServerHelper.createServer();
+    this.server = await ServerHelper.createServer();
 
     //Register All Plugins
-    server = await ServerHelper.registerPlugins(server);
+    this.server = await ServerHelper.registerPlugins(this.server);
 
 
     //Default Routes
-    ServerHelper.setDefaultRoute(server)
+    ServerHelper.setDefaultRoute(this.server);
 
     //add views
-    await ServerHelper.addViews(server);
+    await ServerHelper.addViews(this.server);
 
     // Add routes to Swagger documentation
-    ServerHelper.addSwaggerRoutes(server);
+    ServerHelper.addSwaggerRoutes(this.server);
 
     // Bootstrap Application
     ServerHelper.bootstrap();
 
     // Initiate Socket Server
-    this.socketManager = new SocketManager(server);
+    this.socketManager = new SocketManager(this.server);
     this.socketManager.connectSocket();
 
-    ServerHelper.attachLoggerOnEvents(server);
+    ServerHelper.attachLoggerOnEvents(this.server);
 
     // Start Server
-    return await ServerHelper.startServer(server);
+    this.server = await ServerHelper.startServer(this.server);
 
+    return this.server;
   }
 
-  private async shutdownGracefully(server?: HapiServer) {
+  private async shutdownGracefully(server?: HapiServer, fatal = false) {
     global.appLogger.info('Shutting down gracefully')
     if (server) {
       ServerHelper.removeListeners(server);
       await server.stop();
     }
     await ServerHelper.disconnectMongoDB();
-    process.exit(server ? 0 : 1);
+    process.exit(fatal ? 0 : 1);
   }
 
   /**
@@ -67,13 +69,13 @@ class Server {
 
     process.on("unhandledRejection", err => {
       global.appLogger.fatal(err);
-      this.shutdownGracefully();
+      this.shutdownGracefully(this.server, true);
     });
 
-    const hapiServer = await this.initilize();
+    await this.initilize();
 
-    process.on('SIGINT', () => this.shutdownGracefully(hapiServer));
-    process.on('SIGTERM', () => this.shutdownGracefully(hapiServer))
+    process.on('SIGINT', () => this.shutdownGracefully(this.server));
+    process.on('SIGTERM', () => this.shutdownGracefully(this.server));
   }
 
 }

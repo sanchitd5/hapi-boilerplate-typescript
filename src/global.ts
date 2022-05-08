@@ -10,8 +10,6 @@ declare global {
     var mongoLogger: Logger;
     // declare custom global variables here
     namespace NodeJS {
-        interface ProcessEnv extends BaseEnvironment {
-            // declare your environment variables here.
-        }
+        type ProcessEnv = BaseEnvironment
     }
 }

@@ -153,7 +153,7 @@ class ServerHelper {
   }
 
   async connectMongoDB() {
-    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Connect : Disabled');;
+    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Connect : Disabled');
     try {
       global.mongoLogger.debug('Trying to make connection to DB');
       const mongoose = await mongooseConnect(CONFIG.DB_CONFIG.mongo.URI);
@@ -166,7 +166,7 @@ class ServerHelper {
   }
 
   async disconnectMongoDB() {
-    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Disconnect : Disabled');;
+    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Disconnect : Disabled');
     try {
       mongooseDisconnect();
     } catch (e: any) {

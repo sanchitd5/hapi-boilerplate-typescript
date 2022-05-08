@@ -18,8 +18,8 @@ import GenericController from "../GenericController";
 class UploadBaseController extends GenericController {
 
   uploadImage = (payloadData: any, callback: Function) => {
-    var imageFileURL: any;
-    var imageFile = payloadData.imageFile
+    let imageFileURL: any;
+    const imageFile = payloadData.imageFile
     if (payloadData.imageFile && payloadData.imageFile.filename) {
       imageFileURL = {
         original: null,
@@ -53,8 +53,8 @@ class UploadBaseController extends GenericController {
   }
 
   uploadVideo = (payloadData: any, callback: Function) => {
-    var videoFileURL: any;
-    var videoFile = payloadData.videoFile
+    let videoFileURL: any;
+    const videoFile = payloadData.videoFile
     if (payloadData.videoFile && payloadData.videoFile.filename) {
       videoFileURL = {
         original: null,
@@ -89,8 +89,8 @@ class UploadBaseController extends GenericController {
   }
 
   uploadDocument = (payloadData: any, callback: Function) => {
-    var documentFileUrl: any;
-    var documentFile = payloadData.documentFile
+    let documentFileUrl: any;
+    const documentFile = payloadData.documentFile
     if (payloadData.documentFile && payloadData.documentFile.filename) {
       documentFileUrl = {
         original: null

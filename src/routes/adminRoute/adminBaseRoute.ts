@@ -45,7 +45,7 @@ const accessTokenLogin: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/accessTokenLogin",
   handler: function (request, h) {
-    let userData = request?.auth?.credentials?.userData || null;
+    const userData = request?.auth?.credentials?.userData || null;
     (request.auth &&
       request.auth.credentials &&
       request.auth.credentials.userData) ||
@@ -78,12 +78,12 @@ const createAdmin: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/createAdmin",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    let payloadData: any = request.payload;
+    const payloadData: any = request.payload;
     return new Promise((resolve, reject) => {
       if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
         reject(
@@ -132,7 +132,7 @@ const getAdmin: Hapi.ServerRoute = {
   method: "GET",
   path: "/api/admin/getAdmin",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
@@ -168,12 +168,12 @@ const blockUnblockAdmin: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockAdmin",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    let payloadData = request.payload;
+    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.blockUnblockAdmin(
         userData,
@@ -210,7 +210,7 @@ const createUser: Hapi.ServerRoute = {
   method: "POST",
   path: "/api/admin/createUser",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
@@ -281,7 +281,7 @@ const getUser: Hapi.ServerRoute = {
   method: "GET",
   path: "/api/admin/getUser",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
@@ -317,12 +317,12 @@ const blockUnblockUser: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockUser",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    let payloadData = request.payload;
+    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.blockUnblockUser(
         userData,
@@ -362,7 +362,7 @@ const changePassword: Hapi.ServerRoute = {
   method: "PUT",
   path: "/api/admin/changePassword",
   handler: function (request, h) {
-    let userData =
+    const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
@@ -417,7 +417,7 @@ const logoutAdmin: Hapi.ServerRoute = {
     auth: "UserAuth",
     tags: ["api", "admin"],
     handler: function (request, h) {
-      let userData =
+      const userData =
         (request.auth &&
           request.auth.credentials &&
           request.auth.credentials.userData) ||

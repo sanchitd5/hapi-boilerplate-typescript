@@ -41,10 +41,10 @@ interface SocketData {
 class SocketManager {
     private readonly declare server: SocketServer | undefined;
     constructor(server: Server, options?: Partial<SocketServerOptions>) {
-        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("socket server disabled");
+        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("Startup disabled");
         else {
             const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
-            global.socketLogger.info("socket server initalized");
+            global.socketLogger.info("Server Initalized");
             this.server = io;
         }
     }
@@ -54,7 +54,7 @@ class SocketManager {
      */
     connectSocket(): SocketServer | undefined {
         this.server?.on('connection', (socket) => {
-            global.socketLogger.info("connection established: ", socket.id);
+            global.socketLogger.info("Connection established: ", socket.id);
             const messageToSend: SocketEmitMessage = {
                 message: {
                     type: 'connection',
@@ -69,7 +69,7 @@ class SocketManager {
     }
 
     disconnectSocketServer() {
-        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("socket server disabled");;
+        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("Server Disabled");
         this.server?.disconnectSockets(true);
     }
 

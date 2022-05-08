@@ -17,7 +17,7 @@ class AppConfig {
         this.userDatabase = DATABASE.NONE;
         this.adminDatabase = DATABASE.NONE;
         this.useSocket = false;
-    };
+    }
 }
 
 
