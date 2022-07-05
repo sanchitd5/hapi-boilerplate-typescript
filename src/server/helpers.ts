@@ -1,6 +1,7 @@
 import { GenericError } from "../definations";
 import CONFIG from "../config/index";
 import { connect as mongooseConnect, disconnect as mongooseDisconnect } from "mongoose";
+import { Sequelize } from 'sequelize';
 import { Server } from "@hapi/hapi";
 import { getLogger, configure as log4jsConfigure } from "log4js";
 import fs from 'fs-extra';
@@ -12,6 +13,10 @@ import Plugins from './plugins';
  * @description Helper file for the server
  */
 class ServerHelper {
+
+  constructor(){
+    this.configureLog4js();
+  }
 
   setGlobalAppRoot() {
     import('path').then(path => {
@@ -120,14 +125,16 @@ class ServerHelper {
         Upload_Manager: { type: 'console' },
         Socket_Manager: { type: 'console' },
         Token_Manager: { type: 'console' },
-        Mongo_Manager: { type: 'console' }
+        Mongo_Manager: { type: 'console' },
+        Postgres_Manager: { type: 'console' },
       },
       categories: {
         default: { appenders: ['App'], level: 'trace' },
         Upload_Manager: { appenders: ['Upload_Manager'], level: 'trace' },
         Socket_Manager: { appenders: ['Socket_Manager'], level: 'trace' },
         Token_Manager: { appenders: ['Token_Manager'], level: 'trace' },
-        Mongo_Manager: { appenders: ['Mongo_Manager'], level: 'trace' }
+        Mongo_Manager: { appenders: ['Mongo_Manager'], level: 'trace' },
+        Postgres_Manager: { appenders: ['Postgres_Manager'], level: 'trace' },
       }
     });
     // Global Logger variables for logging
@@ -136,6 +143,7 @@ class ServerHelper {
     global.socketLogger = getLogger('Socket_Manager');
     global.tokenLogger = getLogger('Token_Manager');
     global.mongoLogger = getLogger('Mongo_Manager');
+    global.postgresLogger = getLogger('Postgres_Manager');
   }
 
   /**
@@ -165,6 +173,20 @@ class ServerHelper {
     }
   }
 
+  async connectPostgresDB() {
+    if (!CONFIG.APP_CONFIG.databases.postgres) return global.postgresLogger.info('MongoDB Connect : Disabled');
+    try {
+      global.postgresLogger.debug('Trying to make connection to DB');
+      const postgres = new Sequelize(CONFIG.DB_CONFIG.postgres);
+      await postgres.authenticate();
+      global.postgresLogger.info('PostgresDB Connected');
+      return postgres;
+    } catch (e: any) {
+      global.postgresLogger.error("DB Connect Error: ", e);
+      throw new GenericError('POSTGRES_CONNECT_ERROR', e);
+    }
+  }
+
   async disconnectMongoDB() {
     if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Disconnect : Disabled');
     try {
@@ -175,7 +197,7 @@ class ServerHelper {
     }
   }
 
-  async ensureEnvironmentFileExists() { 
+  async ensureEnvironmentFileExists() {
     await fs.copy('.env.example', '.env', {
       filter: (src, dest) => {
         return !!dest;

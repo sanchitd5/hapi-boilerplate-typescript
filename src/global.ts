@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-empty-interface */
+/* eslint-disable no-var */
 import { Logger } from "log4js";
 import { BaseEnvironment } from "./definations";
 
@@ -8,6 +11,7 @@ declare global {
     var socketLogger: Logger;
     var tokenLogger: Logger;
     var mongoLogger: Logger;
+    var postgresLogger: Logger;
     // declare custom global variables here
     namespace NodeJS {
         interface ProcessEnv extends BaseEnvironment {

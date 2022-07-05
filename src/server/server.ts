@@ -60,8 +60,6 @@ class Server {
    * @description Start HAPI Server
    */
   async start() {
-    ServerHelper.configureLog4js();
-
     await ServerHelper.connectMongoDB();
 
     // Global variable to get app root folder path

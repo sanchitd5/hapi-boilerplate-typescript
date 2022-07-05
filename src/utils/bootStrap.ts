@@ -2,9 +2,10 @@ import Service from '../services';
 import async from "async";
 import UniversalFunctions from "./universalFunctions";
 import { superAdmins } from "../config/users";
-import { GenericServiceCallback } from '../definations';
+import { GenericServiceCallback, DATABASE } from '../definations';
+import config from '../config';
 
-const insertData = (adminData: any, callbackParent: GenericServiceCallback) => {
+const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback) => {
     let _skip = false;
     async.series([
         (cb) => {
@@ -55,7 +56,11 @@ const bootstrapAdmin = (callbackParent: GenericServiceCallback) => {
                     createdAt: UniversalFunctions.getTimestamp(),
                     firstLogin: true
                 };
-                insertData(adminData, embeddedCB as any);
+                switch (config.APP_CONFIG.adminDatabase) {
+                    case DATABASE.MONGODB:
+                        insertDataMongo(adminData, embeddedCB as GenericServiceCallback);
+                        break;
+                }
             }
         })(admin));
     });

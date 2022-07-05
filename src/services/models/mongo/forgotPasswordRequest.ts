@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import universalFunctions from "../../utils/universalFunctions"
+import universalFunctions from "../../../utils/universalFunctions"
 
 const forgetPasswordRequests = new Schema({
     customerID: { type: Schema.Types.ObjectId, ref: 'users' },

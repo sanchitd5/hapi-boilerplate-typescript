@@ -1,3 +1,5 @@
+import { Model } from 'sequelize';
+
 export interface GenericObject {
     [key: string]: any;
 }
@@ -31,3 +33,9 @@ export interface ApplicationError extends InternalError {
 }
 
 export type ValidationError = InternalError
+
+
+export class SqlModel extends Model {
+    declare createdAt: Date;
+    declare updatedAt: Date;
+}

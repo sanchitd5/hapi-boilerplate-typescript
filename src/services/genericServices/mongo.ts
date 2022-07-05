@@ -1,38 +1,28 @@
-import Models from "./../models/index";
+import Mongo from "./../models/mongo/index";
 import { GenericObject, GenericServiceCallback } from '../../definations';
 import mongoose from "mongoose";
+import GenericDBService from "./generic";
 
 
 /**
  * @author Sanchit Dang
  * @description Generic MongoDB Service Template
  */
-export default class GenericMongoService {
+export default class GenericMongoService extends GenericDBService {
     declare model: mongoose.Model<unknown>;
-
-    /**
-     * @private
-     * @author Sanchit Dang
-     * @description Validate if models exists
-     * @param {String} modelName name of the model 
-     */
-    private isModelValid(modelName: string): boolean {
-        return !(!modelName || 0 === modelName.length || !Models.hasOwnProperty(modelName as PropertyKey));
-    }
 
     /**
      * 
      * @param {String} modelName Name of the Model
      */
     constructor(modelName: string) {
-        if (!this.isModelValid(modelName)) {
+        super();
+        if (!this.isModelValid(Mongo, modelName)) {
             console.error(`Invalid model name ${modelName}`);
             throw "Invalid model name '" + modelName + "'. Terminating app..."
         }
-        this.model = Models[modelName];
+        this.model = Mongo[modelName];
     }
-
-
 
     /**
      * @author Sanchit Dang
