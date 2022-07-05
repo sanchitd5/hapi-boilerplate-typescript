@@ -13,8 +13,8 @@ import Plugins from './plugins';
  * @description Helper file for the server
  */
 class ServerHelper {
-
-  constructor(){
+  declare sequilizeInstance: Sequelize;
+  constructor() {
     this.configureLog4js();
   }
 
@@ -174,11 +174,12 @@ class ServerHelper {
   }
 
   async connectPostgresDB() {
-    if (!CONFIG.APP_CONFIG.databases.postgres) return global.postgresLogger.info('MongoDB Connect : Disabled');
+    if (!CONFIG.APP_CONFIG.databases.postgres) return global.postgresLogger.info('Postgres Connect : Disabled');
     try {
       global.postgresLogger.debug('Trying to make connection to DB');
       const postgres = new Sequelize(CONFIG.DB_CONFIG.postgres);
       await postgres.authenticate();
+      this.sequilizeInstance = postgres;
       global.postgresLogger.info('PostgresDB Connected');
       return postgres;
     } catch (e: any) {
@@ -204,6 +205,13 @@ class ServerHelper {
       },
       overwrite: false
     });
+  }
+
+  async getSequelizeInstance() {
+    if (!this.sequilizeInstance) {
+      await this.connectPostgresDB();
+    }
+    return this.sequilizeInstance;
   }
 }
 

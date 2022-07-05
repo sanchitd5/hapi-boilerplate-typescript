@@ -61,6 +61,7 @@ class Server {
    */
   async start() {
     await ServerHelper.connectMongoDB();
+    await ServerHelper.connectPostgresDB();
 
     // Global variable to get app root folder path
     ServerHelper.setGlobalAppRoot();
