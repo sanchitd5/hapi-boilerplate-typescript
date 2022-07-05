@@ -14,46 +14,46 @@ export default class GenericSQLService extends GenericDBService {
 
     }
 
-    async createRecord(data: GenericObject, callback?: GenericServiceCallback) {
+    async createRecord(data: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
         try {
             const result = await this.model.create(data);
             if (callback) callback(null, result);
             return result;
         } catch (error) {
-            if (callback) callback(error);
+            if (callback) callback(error as Error);
             else throw error;
         }
     }
 
-    async updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback?: GenericServiceCallback) {
+    async updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
         try {
             const result = await this.model.findOneAndUpdate(criteria, data);
             if (callback) callback(null, result);
             return result;
         } catch (error) {
-            if (callback) callback(error);
+            if (callback) callback(error as Error);
             else throw error;
         }
     }
 
-    async getRecord(criteria: GenericObject, options: GenericObject, callback?: GenericServiceCallback) {
+    async getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
         try {
             const result = await this.model.findAll(criteria);
             if (callback) callback(null, result);
             return result;
         } catch (error) {
-            if (callback) callback(error);
+            if (callback) callback(error as Error);
             else throw error;
         }
     }
 
-    async deleteRecord(criteria: GenericObject, options: GenericObject, callback?: GenericServiceCallback) {
+    async deleteRecord(criteria: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
         try {
             const result = await this.model.destroy(criteria);
             if (callback) callback(null, result);
             return result;
         } catch (error) {
-            if (callback) callback(error);
+            if (callback) callback(error as Error);
             else throw error;
         }
     }
