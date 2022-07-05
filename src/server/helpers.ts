@@ -175,11 +175,12 @@ class ServerHelper {
     }
   }
 
-  async ensureEnvironmentFileExists() {
+  async ensureEnvironmentFileExists() { 
     await fs.copy('.env.example', '.env', {
       filter: (src, dest) => {
         return !!dest;
-      }
+      },
+      overwrite: false
     });
   }
 }

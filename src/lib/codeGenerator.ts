@@ -18,13 +18,13 @@ import _ from 'lodash';
 
 
 const generateRandomNumbers = (numberLength: number, excludeList: Array<number>) => {
-    let arrayList = [];
+    let arrayList: Array<string> = [];
     excludeList = excludeList || [];
 
     let minString = "0";
     let maxString = "9";
     let i;
-    let digitToCheck: string;
+
     for (i = 1; i < numberLength; i++) {
         minString = minString + "0";
         maxString = maxString + "9";
@@ -33,7 +33,7 @@ const generateRandomNumbers = (numberLength: number, excludeList: Array<number>)
     const maxNumber = parseInt(maxString);
     //Create list
     for (i = minNumber; i < maxNumber; i++) {
-        digitToCheck = i.toString();
+        let digitToCheck = i.toString();
         if (digitToCheck.length < numberLength) {
             const diff = numberLength - digitToCheck.length;
             let zeros = '';

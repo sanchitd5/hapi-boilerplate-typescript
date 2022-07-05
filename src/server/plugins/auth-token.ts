@@ -1,6 +1,7 @@
 import Hapi from '@hapi/hapi';
 import TokenManager from '../../lib/tokenManager';
 import AuthBearer from 'hapi-auth-bearer-token';
+import converters from '../../utils/converters';
 
 export const register = async function (server: Hapi.Server) {
 
@@ -13,7 +14,7 @@ export const register = async function (server: Hapi.Server) {
         validate: async function (request, token, h) {
             let isValid = false;
             const credentials = await TokenManager.verifyToken(token)
-            if (credentials && credentials['userData']) {
+            if (converters.convertToObject(credentials) && credentials.userData) {
                 isValid = true;
             }
             return { isValid, credentials };

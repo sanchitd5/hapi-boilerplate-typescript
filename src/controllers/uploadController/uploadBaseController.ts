@@ -12,12 +12,13 @@
  */
 
 
+import { GenericServiceCallback } from '../../definations';
 import UploadManager from '../../lib/uploadManager';
 import GenericController from "../GenericController";
 
 class UploadBaseController extends GenericController {
 
-  uploadImage = (payloadData: any, callback: Function) => {
+  uploadImage = (payloadData: any, callback: GenericServiceCallback) => {
     let imageFileURL: any;
     const imageFile = payloadData.imageFile
     if (payloadData.imageFile && payloadData.imageFile.filename) {
@@ -46,13 +47,13 @@ class UploadBaseController extends GenericController {
           cb()
         }
       }
-    ], function (err, result) {
+    ], function (err) {
       if (err) callback(err)
       else callback(null, { imageFileURL: imageFileURL })
     })
   }
 
-  uploadVideo = (payloadData: any, callback: Function) => {
+  uploadVideo = (payloadData: any, callback: GenericServiceCallback) => {
     let videoFileURL: any;
     const videoFile = payloadData.videoFile
     if (payloadData.videoFile && payloadData.videoFile.filename) {
@@ -88,7 +89,7 @@ class UploadBaseController extends GenericController {
     })
   }
 
-  uploadDocument = (payloadData: any, callback: Function) => {
+  uploadDocument = (payloadData: any, callback: GenericServiceCallback) => {
     let documentFileUrl: any;
     const documentFile = payloadData.documentFile
     if (payloadData.documentFile && payloadData.documentFile.filename) {

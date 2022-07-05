@@ -15,7 +15,7 @@ const adminLogin: Hapi.ServerRoute = {
       return new Promise((resolve, reject) => {
         Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
           if (error) return reject(UniversalFunctions.sendError(error));
-          resolve(UniversalFunctions.sendSuccess(null, data));
+          resolve(UniversalFunctions.sendSuccess(undefined, data));
 
         });
       });
@@ -53,7 +53,7 @@ const accessTokenLogin: Hapi.ServerRoute = {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
         if (err) return reject(UniversalFunctions.sendError(err));
-        resolve(UniversalFunctions.sendSuccess(null, data));
+        resolve(UniversalFunctions.sendSuccess(undefined, data));
       });
     });
   },
@@ -99,7 +99,7 @@ const createAdmin: Hapi.ServerRoute = {
           payloadData,
           (err: Error, data: any) => {
             if (err) return reject(UniversalFunctions.sendError(err));
-            resolve(UniversalFunctions.sendSuccess(null, data));
+            resolve(UniversalFunctions.sendSuccess(undefined, data));
           }
         );
       }
@@ -140,7 +140,7 @@ const getAdmin: Hapi.ServerRoute = {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.getAdmin(userData, (err: Error, data: any) => {
         if (!err) {
-          resolve(UniversalFunctions.sendSuccess(null, data));
+          resolve(UniversalFunctions.sendSuccess(undefined, data));
         } else {
           reject(UniversalFunctions.sendError(err));
         }
@@ -180,7 +180,7 @@ const blockUnblockAdmin: Hapi.ServerRoute = {
         payloadData,
         (err: Error, data: any) => {
           if (err) return reject(UniversalFunctions.sendError(err));
-          resolve(UniversalFunctions.sendSuccess(null, data));
+          resolve(UniversalFunctions.sendSuccess(undefined, data));
         }
       );
     });
@@ -230,7 +230,7 @@ const createUser: Hapi.ServerRoute = {
           request.payload,
           (err: Error, data: any) => {
             if (!err) {
-              resolve(UniversalFunctions.sendSuccess(null, data));
+              resolve(UniversalFunctions.sendSuccess(undefined, data));
             } else {
               reject(UniversalFunctions.sendError(err));
             }
@@ -289,7 +289,7 @@ const getUser: Hapi.ServerRoute = {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.getUser(userData, (err: Error, data: any) => {
         if (!err) {
-          resolve(UniversalFunctions.sendSuccess(null, data));
+          resolve(UniversalFunctions.sendSuccess(undefined, data));
         } else {
           reject(UniversalFunctions.sendError(err));
         }
@@ -329,7 +329,7 @@ const blockUnblockUser: Hapi.ServerRoute = {
         payloadData,
         (err: Error, data: any) => {
           if (!err) {
-            resolve(UniversalFunctions.sendSuccess(null, data));
+            resolve(UniversalFunctions.sendSuccess(undefined, data));
           } else {
             reject(UniversalFunctions.sendError(err));
           }

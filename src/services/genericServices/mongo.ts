@@ -1,31 +1,14 @@
-import MODELS from "./../models/index";
-import { GenericObject } from '../../definations';
+import Models from "./../models/index";
+import { GenericObject, GenericServiceCallback } from '../../definations';
+import mongoose from "mongoose";
 
-interface GenericServceCallback {
-    (err: Error, data: any): void;
-}
 
 /**
  * @author Sanchit Dang
  * @description Generic MongoDB Service Template
  */
 export default class GenericMongoService {
-    declare modelName: string;
-    declare objects: Array<any>;
-
-    /**
-     * 
-     * @param {String} modelName Name of the Model
-     */
-    constructor(modelName: string) {
-        if (!this.#isModelValid(modelName)) {
-            console.error(`Invalid model name ${modelName}`);
-            throw "Invalid model name '" + modelName + "'. Terminating app..."
-        }
-
-        this.modelName = modelName;
-        this.objects = [];
-    }
+    declare model: mongoose.Model<unknown>;
 
     /**
      * @private
@@ -33,9 +16,23 @@ export default class GenericMongoService {
      * @description Validate if models exists
      * @param {String} modelName name of the model 
      */
-    #isModelValid(modelName: string) {
-        return !(!modelName || 0 === modelName.length || !MODELS.hasOwnProperty(modelName as PropertyKey));
+    private isModelValid(modelName: string): boolean {
+        return !(!modelName || 0 === modelName.length || !Models.hasOwnProperty(modelName as PropertyKey));
     }
+
+    /**
+     * 
+     * @param {String} modelName Name of the Model
+     */
+    constructor(modelName: string) {
+        if (!this.isModelValid(modelName)) {
+            console.error(`Invalid model name ${modelName}`);
+            throw "Invalid model name '" + modelName + "'. Terminating app..."
+        }
+        this.model = Models[modelName];
+    }
+
+
 
     /**
      * @author Sanchit Dang
@@ -45,10 +42,15 @@ export default class GenericMongoService {
      * @param {Object} options 
      * @param {Function} callback 
      */
-    updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback: GenericServceCallback) {
-        options.lean = true;
-        options.new = true;
-        MODELS[this.modelName].findOneAndUpdate(criteria, data, options, callback);
+    async updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+        try {
+            options.lean = true;
+            options.new = true;
+            const result = await this.model.findOneAndUpdate(criteria, data, options, callback);
+            if (!callback) return result;
+        } catch (error) {
+            if (!callback) throw error;
+        }
     }
 
     /**
@@ -57,8 +59,14 @@ export default class GenericMongoService {
      * @param {Object} data 
      * @param {Function} callback 
      */
-    createRecord(data: GenericObject, callback: GenericServceCallback) {
-        MODELS[this.modelName](data).save(callback);
+    async createRecord(data: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+        try {
+            const result = await new this.model(data).save();
+            if (!callback) return result;
+        } catch (error) {
+            if (!callback) throw error;
+        }
+
     }
 
     /**
@@ -67,8 +75,13 @@ export default class GenericMongoService {
      * @param {Object} criteria 
      * @param {Function} callback 
      */
-    deleteRecord(criteria: GenericObject, callback: Function) {
-        MODELS[this.modelName].findOneAndRemove(criteria, callback);
+    async deleteRecord(criteria: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+        try {
+            const result = await this.model.findOneAndRemove(criteria, callback);
+            if (!callback) return result;
+        } catch (error) {
+            if (!callback) throw error;
+        }
     }
 
     /**
@@ -79,9 +92,14 @@ export default class GenericMongoService {
      * @param {Object} options 
      * @param {Function} callback 
      */
-    getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback: GenericServceCallback) {
-        options.lean = true;
-        MODELS[this.modelName].find(criteria, projection, options, callback);
+    async getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+        try {
+            options.lean = true;
+            const result = await this.model.find(criteria, projection, options, callback);
+            if (!callback) return result;
+        } catch (error) {
+            if (!callback) throw error;
+        }
     }
 
     /**
@@ -92,36 +110,19 @@ export default class GenericMongoService {
      * @param {Object|string} populate 
      * @param {Function} callback 
      */
-    getPopulatedRecords(criteria: GenericObject, projection: GenericObject, populate: GenericObject | string, callback: GenericServceCallback) {
-        MODELS[this.modelName].find(criteria).select(projection).populate(populate).exec(callback)
-    }
-
-    /**
-     * @author Sanchit Dang
-     * @description Aggregate Records
-     * @param {Object} criteria 
-     * @param {Function} callback 
-     */
-    aggregate(criteria: GenericObject, callback: Function) {
-        MODELS[this.modelName].aggregate(criteria, callback);
-    }
-
-
-    /**
-     * @author Sanchit Dang
-     * @description get records using promise
-     * @param {Object} criteria 
-     * @param {Object} projection 
-     * @param {Object} options 
-     */
-    getRecordUsingPromise(criteria: GenericObject, projection: GenericObject, options: GenericObject): Promise<any> {
-        options.lean = true;
-        return new Promise((resolve, reject) => {
-            MODELS[this.modelName].find(criteria, projection, options, (err: Error, data: any) => {
-                if (err) reject(err);
-                else resolve(data);
-            });
-        });
+    async getPopulatedRecords(criteria: GenericObject, projection: GenericObject, populate: string | string[], callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+        try {
+            const result = await this.model.find(criteria).select(projection).populate(populate);
+            if (!callback) return result;
+            else {
+                callback(null, result);
+            }
+        } catch (error) {
+            if (!callback) throw error;
+            else {
+                callback(error as Error);
+            }
+        }
     }
 
 }

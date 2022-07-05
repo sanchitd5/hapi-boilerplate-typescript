@@ -6,6 +6,7 @@
         "module": "commonjs",
         "moduleResolution": "Node",
         "allowJs": true,
+        "noImplicitAny": false
     },
     "ts-node": {
         "files": true,

@@ -17,49 +17,52 @@ import CONFIG from "../config";
 import randomstring from "randomstring";
 import validator from "validator";
 import { DateTime } from "luxon";
-import { GenericObject } from "../definations";
+import { FrozenResponseMessage, GenericObject } from "../definations";
+import converters from "./converters";
 
 
-const sendError = (data: GenericObject | string | boolean) => {
+const sendError = (data: GenericObject | string | boolean | Error | FrozenResponseMessage | unknown) => {
   console.trace('ERROR OCCURED ', data)
-  if (typeof data == 'object' && data.hasOwnProperty('statusCode') && data.hasOwnProperty('customMessage')) {
-    const errorToSend = new Boom.Boom(data.customMessage, { statusCode: data.statusCode });
-    errorToSend.output.payload.responseType = data.type;
-    return errorToSend;
-  } else {
-    let errorToSend: any = '';
-    if (typeof data == 'object') {
-      if (data.name == 'MongoError') {
-        errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage;
-        if (data.code = 11000) {
-          let duplicateValue = data.errmsg && data.errmsg.substr(data.errmsg.lastIndexOf('{ : "') + 5);
-          duplicateValue = duplicateValue.replace('}', '');
-          errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DUPLICATE.customMessage + " : " + duplicateValue;
-        }
-      } else if (data.name == 'ApplicationError') {
-        errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.APP_ERROR.customMessage + ' : ';
-      } else if (data.name == 'ValidationError') {
-        errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.APP_ERROR.customMessage + data.message;
-      } else if (data.name == 'CastError') {
-        errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage + CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_ID.customMessage + data.value;
-      }
+  if (converters.convertToObject(data)) {
+    if (typeof data == 'object' && data.hasOwnProperty('statusCode') && data.hasOwnProperty('customMessage') && converters.convertToFrozenResponseMessage(data)) {
+      const errorToSend = new Boom.Boom(data.customMessage, { statusCode: data.statusCode });
+      errorToSend.output.payload.responseType = data.type;
+      return errorToSend;
     } else {
-      errorToSend = data
-    }
-    let customErrorMessage = errorToSend;
-    if (typeof customErrorMessage == 'string') {
-      if (errorToSend.indexOf("[") > -1) {
-        customErrorMessage = errorToSend.substr(errorToSend.indexOf("["));
+      let errorToSend: any = '';
+      if (typeof data == 'object') {
+        if (converters.isMongoError(data)) {
+          errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage;
+          if (data.code = 11000) {
+            let duplicateValue = data.errmsg && data.errmsg.substr(data.errmsg.lastIndexOf('{ : "') + 5);
+            duplicateValue = duplicateValue.replace('}', '');
+            errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DUPLICATE.customMessage + " : " + duplicateValue;
+          }
+        } else if (converters.isApplicationError(data)) {
+          errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.APP_ERROR.customMessage + ' : ';
+        } else if (converters.isApplicationError(data)) {
+          errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.APP_ERROR.customMessage + data.message;
+        } else if (converters.isCastError(data)) {
+          errorToSend += CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage + CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_ID.customMessage + data.value;
+        }
+      } else {
+        errorToSend = data
       }
-      customErrorMessage = customErrorMessage && customErrorMessage.replace(/"/g, '');
-      customErrorMessage = customErrorMessage && customErrorMessage.replace('[', '');
-      customErrorMessage = customErrorMessage && customErrorMessage.replace(']', '');
+      let customErrorMessage = errorToSend;
+      if (typeof customErrorMessage == 'string') {
+        if (errorToSend.indexOf("[") > -1) {
+          customErrorMessage = errorToSend.substr(errorToSend.indexOf("["));
+        }
+        customErrorMessage = customErrorMessage && customErrorMessage.replace(/"/g, '');
+        customErrorMessage = customErrorMessage && customErrorMessage.replace('[', '');
+        customErrorMessage = customErrorMessage && customErrorMessage.replace(']', '');
+      }
+      return new Boom.Boom(customErrorMessage, { statusCode: 400 })
     }
-    return new Boom.Boom(customErrorMessage, { statusCode: 400 })
   }
 };
 
-const sendSuccess = (successMsg: GenericObject | string = CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT.customMessage, data: GenericObject | Array<GenericObject>) => {
+const sendSuccess = (successMsg: GenericObject | string | undefined = CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT.customMessage, data: GenericObject | Array<GenericObject> | unknown) => {
   if (typeof successMsg == 'object' && successMsg.hasOwnProperty('statusCode') && successMsg.hasOwnProperty('customMessage'))
     return { statusCode: successMsg.statusCode, message: successMsg.customMessage, data: data || {} };
   return { statusCode: 200, message: successMsg, data: data || {} };
@@ -166,12 +169,11 @@ const getTimestamp = function (inDate?: boolean) {
   return new Date().toISOString();
 };
 
-const createArray = function (List: Array<any>, keyName: string) {
-  const IdArray = [];
-  var keyName = keyName;
-  for (const key in List) {
-    if (List.hasOwnProperty(key)) {
-      IdArray.push((List[key][keyName]).toString());
+const createArray = function (list: Array<any>, keyName: string) {
+  const IdArray: Array<any> = [];
+  for (const key in list) {
+    if (list.hasOwnProperty(key)) {
+      IdArray.push((list[key][keyName]).toString());
     }
   }
   return IdArray;
@@ -193,7 +195,7 @@ const checkFileExtension = (fileName: string) =>
  * @param {Function} callback callback function which returns cleaned object.
  * @returns {Object} Cleaned Version of the object. 
  */
-const cleanObject = (obj: GenericObject, callback?: (param: GenericObject) => {}): object => {
+const cleanObject = (obj: GenericObject, callback?: (param: GenericObject) => GenericObject): object => {
   const newObj: GenericObject = Object.keys(obj)
     .filter(k => obj[k] != undefined && obj[k] != null && obj[k] != '') // Remove undef. and null.
     .reduce(

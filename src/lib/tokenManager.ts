@@ -11,9 +11,9 @@
 
 import Services from "../services/index";
 import Config from "../config";
-import { DeviceData, GenericObject, TokenData } from "../definations";
+import { DeviceData, GenericObject, TokenData, GenericServiceCallback } from "../definations";
 import { countBy } from "lodash";
-const Jwt = require("jsonwebtoken");
+import Jwt from "jsonwebtoken";
 
 /**
  * 
@@ -32,9 +32,9 @@ const getTokenFromDB = async function (userId: string, userType: string, token: 
       default: return { userId, accessToken: token }
     }
   })();
-  const result = await Services.TokenService.getRecordUsingPromise(criteria, {}, {});
+  const result = await Services.TokenService.getRecord(criteria, {}, {});
   if (result && result.length > 0) {
-    result[0].type = userType;
+    (result[0] as GenericObject).type = userType;
     return result[0];
   } else {
     return Config.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_TOKEN;
@@ -52,9 +52,9 @@ const getTokenFromDB = async function (userId: string, userType: string, token: 
  * @param {String} tokenData.deviceUUID
  * @param {Function} callback 
  */
-const setTokenInDB = function (userId: string, userType: string, tokenData: any, callback: Function) {
+const setTokenInDB = function (userId: string, userType: string, tokenData: GenericObject, callback: GenericServiceCallback) {
   tokenLogger.info("login_type::::::::", userType);
-  let objectToCreate: { [key: string]: any }, criteria: { [key: string]: any };
+  let objectToCreate: { [key: string]: GenericObject | string | unknown }, criteria: { [key: string]: GenericObject | string | unknown };
   switch (userType) {
     case Config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN:
     case Config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN: {
@@ -67,22 +67,12 @@ const setTokenInDB = function (userId: string, userType: string, tokenData: any,
       criteria = { userId, deviceUUID: tokenData.deviceUUID };
     }
   }
-  Services.TokenService.getRecord(criteria, {}, {}, (err: Error, data: any) => {
-    if (err) return countBy(err);
-    if (data.length === 0) {
-      Services.TokenService.createRecord(objectToCreate, (err: Error) => {
-        if (err) callback(err);
-        else {
-          callback();
-        }
-      });
+  Services.TokenService.getRecord(criteria, {}, {}, (err, data) => {
+    if (err) return countBy(err as Error);
+    if ((data as Array<GenericObject>).length === 0) {
+      Services.TokenService.createRecord(objectToCreate, callback);
     } else {
-      Services.TokenService.updateRecord(criteria, tokenData, {}, (err: Error) => {
-        if (err) callback(err);
-        else {
-          callback();
-        }
-      });
+      Services.TokenService.updateRecord(criteria, tokenData, {}, callback);
     }
   });
 
@@ -99,27 +89,25 @@ const setTokenInDB = function (userId: string, userType: string, tokenData: any,
  * @param {String} deviceData.deviceName
  * @param {Function} callback 
  */
-const setToken = function (tokenData: TokenData, deviceData: DeviceData, callback: Function) {
+const setToken = function (tokenData: TokenData, deviceData: DeviceData, callback: (err: GenericObject | Error, result?: { accessToken: string }) => void) {
   if (!tokenData.id || !tokenData.type) {
-    callback(Config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR);
+    callback(Config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR,);
   } else {
     const tokenToSend = Jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
     setTokenInDB(tokenData.id, tokenData.type, { accessToken: tokenToSend, ...deviceData }, (
-      err: Error,
-    ) => {
-      callback(err, { accessToken: tokenToSend });
-    });
+      err,
+    ) => callback(err as Error, { accessToken: tokenToSend }));
   }
 };
 
-const verifyToken = async function (token: string): Promise<any> {
+const verifyToken = async function (token: string): Promise<unknown | GenericObject> {
   try {
-    const decodedData = await Jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const decodedData = Jwt.verify(token, process.env.JWT_SECRET_KEY) as GenericObject;
     const result = await getTokenFromDB(
       decodedData.id,
       decodedData.type,
       token
-    );
+    ) as GenericObject;
     if (result && result._id) return { userData: result };
     else throw result;
   } catch (err) {

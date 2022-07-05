@@ -2,12 +2,13 @@ import Service from '../services';
 import async from "async";
 import UniversalFunctions from "./universalFunctions";
 import { superAdmins } from "../config/users";
+import { GenericServiceCallback } from '../definations';
 
-const insertData = (adminData: any, callbackParent: Function) => {
+const insertData = (adminData: any, callbackParent: GenericServiceCallback) => {
     let _skip = false;
     async.series([
         (cb) => {
-            Service.AdminService.getRecord({ emailId: adminData.emailId }, {}, {}, (err: Error, data: any) => {
+            Service.AdminService.getRecord({ emailId: adminData.emailId }, {}, {}, (err, data) => {
                 if (err) cb(err)
                 else {
                     if (data.length > 0) {
@@ -41,11 +42,11 @@ const insertData = (adminData: any, callbackParent: Function) => {
     })
 };
 
-const bootstrapAdmin = (callbackParent: Function) => {
+const bootstrapAdmin = (callbackParent: GenericServiceCallback) => {
     const taskToRunInParallel: async.AsyncFunction<unknown, Error>[] = [];
     superAdmins.forEach((admin) => {
         taskToRunInParallel.push(((admin) => {
-            return (embeddedCB: Function) => {
+            return (embeddedCB) => {
                 const adminData = {
                     emailId: admin.email,
                     password: UniversalFunctions.CryptData(admin.password),
@@ -54,7 +55,7 @@ const bootstrapAdmin = (callbackParent: Function) => {
                     createdAt: UniversalFunctions.getTimestamp(),
                     firstLogin: true
                 };
-                insertData(adminData, embeddedCB);
+                insertData(adminData, embeddedCB as any);
             }
         })(admin));
     });

@@ -19,7 +19,7 @@ const userRegister = {
               .INVALID_EMAIL_FORMAT)
           );
         else {
-          Controller.UserBaseController.createUser(payloadData, (err: Error, data: any) => {
+          Controller.UserBaseController.createUser(payloadData, (err, data) => {
             if (err) reject(UniversalFunctions.sendError(err));
             else resolve(
               UniversalFunctions.sendSuccess(
@@ -62,7 +62,7 @@ const verifyOTP = {
       const payloadData = request.payload;
       const userData = (request.auth && request.auth.credentials && request.auth.credentials.userData) || null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.verifyOTP({ data: payloadData, userData }, (err: Error, data: any) => {
+        Controller.UserBaseController.verifyOTP({ data: payloadData, userData }, (err, data) => {
           if (err) reject(UniversalFunctions.sendError(err));
           else {
             resolve(
@@ -109,9 +109,9 @@ const login = {
             )
           );
         } else {
-          Controller.UserBaseController.loginUser(payloadData, (err: Error, data: any) => {
+          Controller.UserBaseController.loginUser(payloadData, (err, data) => {
             if (err) reject(UniversalFunctions.sendError(err));
-            else resolve(UniversalFunctions.sendSuccess(null, data));
+            else resolve(UniversalFunctions.sendSuccess(undefined, data));
           });
         }
       });
@@ -152,7 +152,7 @@ const resendOTP = {
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.resendOTP(userData, (err: Error, data: any) => {
+        Controller.UserBaseController.resendOTP(userData, (err, data) => {
           if (err) {
             reject(UniversalFunctions.sendError(err));
           } else {
@@ -189,7 +189,7 @@ const getOTP = {
     handler: (request: any) => {
       const userData = request.query;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.getOTP(userData, (error: Error, success: any) => {
+        Controller.UserBaseController.getOTP(userData, (error, success) => {
           {
             if (error) return reject(UniversalFunctions.sendError(error));
             resolve(
@@ -231,11 +231,10 @@ const accessTokenLogin = {
           request.auth.credentials &&
           request.auth.credentials.userData) ||
         null;
-      const data = request.payload;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
+        Controller.UserBaseController.accessTokenLogin(userData, (err, data) => {
           if (!err) {
-            resolve(UniversalFunctions.sendSuccess(null, data));
+            resolve(UniversalFunctions.sendSuccess(undefined, data));
           } else {
             reject(UniversalFunctions.sendError(err));
           }
@@ -270,7 +269,7 @@ const logoutCustomer = {
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.UserBaseController.logoutCustomer(userData, (err: Error, data: any) => {
+        Controller.UserBaseController.logoutCustomer(userData, (err, data) => {
           if (err) {
             reject(UniversalFunctions.sendError(err));
           } else {
@@ -312,7 +311,7 @@ const getProfile = {
         null;
       return new Promise((resolve, reject) => {
         if (userData && userData._id) {
-          Controller.UserBaseController.getProfile(userData, (error: Error, success: any) => {
+          Controller.UserBaseController.getProfile(userData, (error, success) => {
             if (error) {
               reject(UniversalFunctions.sendError(error));
             } else {
@@ -364,7 +363,7 @@ const changePassword = {
         Controller.UserBaseController.changePassword(
           userData,
           request.payload,
-          (err: Error, user: any) => {
+          (err, user) => {
             if (!err) {
               resolve(
                 UniversalFunctions.sendSuccess(
@@ -418,7 +417,7 @@ const forgotPassword = {
         } else {
           Controller.UserBaseController.forgetPassword(
             request.payload,
-            (error: Error, success: any) => {
+            (error, success) => {
               if (error) {
                 reject(UniversalFunctions.sendError(error));
               } else {
@@ -467,7 +466,7 @@ const resetPassword = {
             )
           );
         } else {
-          Controller.UserBaseController.resetPassword(request.payload, (error: Error, success: any) => {
+          Controller.UserBaseController.resetPassword(request.payload, (error, success) => {
             if (error) {
               reject(UniversalFunctions.sendError(error));
             } else {

@@ -1,6 +1,7 @@
 import GenericController from "../GenericController";
 import TokenManager from '../../lib/tokenManager';
 import * as CodeGenerator from "../../lib/codeGenerator";
+import { GenericObject, GenericServiceCallback } from "../../definations";
 
 class UserBaseController extends GenericController {
     declare private ERROR;
@@ -9,52 +10,48 @@ class UserBaseController extends GenericController {
         this.ERROR = this.universalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR;
     }
 
-    private checkIfTokenValid = (data: any, callback: Function) => {
+    private checkIfTokenValid = (data: Array<unknown> | unknown, callback: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) => {
         if (!!data) {
-            callback(this.ERROR.INCORRECT_ACCESSTOKEN as any);
+            callback(this.ERROR.INCORRECT_ACCESSTOKEN as unknown as Error);
             return false;
         }
-        if (data.length == 0) {
-            callback(this.ERROR.INCORRECT_ACCESSTOKEN as any);
+        if ((data as Array<unknown>).length == 0) {
+            callback(this.ERROR.INCORRECT_ACCESSTOKEN as unknown as Error);
             return false;
         }
         return true;
     }
 
-    createUser = (payloadData: any, callback: Function) => {
-        let accessToken: string;
+    createUser = (payloadData: GenericObject, callback: GenericServiceCallback) => {
+        let accessToken: string | null;
         let uniqueCode: number;
         const dataToSave = payloadData;
         if (dataToSave.password)
             dataToSave.password = this.universalFunctions.CryptData(dataToSave.password);
-        let customerData: any;
-        let appVersion: any;
+        let customerData: GenericObject;
+        let appVersion: GenericObject;
         this.async.series(
             [
                 (cb) => {
                     const query = {
                         $or: [{ emailId: payloadData.emailId }]
                     };
-                    this.services.UserService.getRecord(query, {}, { lean: true }, (error: any, data: any) => {
-                        if (error) cb(error);
-                        else {
-                            if (data && data.length > 0) {
-                                if (data[0].emailVerified == true) cb(this.ERROR.USER_ALREADY_REGISTERED as any);
-                                else {
-                                    this.services.UserService.deleteUser({ _id: data[0]._id }, (err: Error) => {
-                                        if (err) cb(err);
-                                        else cb(null);
-                                    });
-                                }
-                            } else cb(null);
-                        }
+                    this.services.UserService.getRecord(query, {}, { lean: true }, (error, data) => {
+                        if (error) cb(error as Error);
+                        else if (this.converters.convertToObjectArray(data)) {
+                            if (!data.length) return cb();
+                            if (data[0].emailVerified == true) return cb(this.ERROR.USER_ALREADY_REGISTERED as any);
+                            this.services.UserService.deleteRecord({ _id: data[0]._id }, (err) => {
+                                if (err) return cb(err as Error);
+                                cb(null);
+                            });
+                        } else cb();
                     });
                 },
                 (cb) => {
                     //Validate for facebookId and password
                     if (!dataToSave.password) cb(this.ERROR.PASSWORD_REQUIRED as any);
                     else cb();
-
                 },
                 (cb) => {
                     //Validate countryCode
@@ -63,7 +60,6 @@ class UserBaseController extends GenericController {
                             cb(this.ERROR.INVALID_COUNTRY_CODE as any);
                         } else cb();
                     } else cb(this.ERROR.INVALID_COUNTRY_CODE as any);
-
                 },
                 (cb) => {
                     //Validate phone No
@@ -107,38 +103,23 @@ class UserBaseController extends GenericController {
                         }
                     });
                 },
-                //  (cb) => {
-                //     //Send SMS to User
-                //     if (customerData) {
-                //         NotificationManager.sendSMSToUser(uniqueCode, dataToSave.countryCode, dataToSave.mobileNo, (err: Error, data: any) => {
-                //             cb();
-                //         })
-                //     } else {
-                //         cb(ERROR.IMP_ERROR)
-                //     }
-                //
-                // },
                 (cb) => {
                     //Set Access Token
-                    if (customerData) {
-                        const tokenData = {
-                            id: customerData._id,
-                            type: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER
-                        };
-                        const deviceData: { deviceName: string, deviceType: string, deviceUUID: string } = {
-                            deviceName: payloadData.deviceData.deviceName,
-                            deviceType: payloadData.deviceData.deviceType,
-                            deviceUUID: payloadData.deviceData.deviceUUID,
-                        };
-                        TokenManager.setToken(tokenData, deviceData, (err: Error, output: any) => {
-                            if (err) cb(err);
-                            else {
-                                accessToken = (output && output.accessToken) || null;
-                                cb();
-                            }
-                        });
-                    } else cb(this.ERROR.IMP_ERROR as any);
-
+                    if (!customerData) return cb(this.ERROR.IMP_ERROR as any);
+                    const tokenData = {
+                        id: customerData._id,
+                        type: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER
+                    };
+                    const deviceData: { deviceName: string, deviceType: string, deviceUUID: string } = {
+                        deviceName: payloadData.deviceData.deviceName,
+                        deviceType: payloadData.deviceData.deviceType,
+                        deviceUUID: payloadData.deviceData.deviceUUID,
+                    };
+                    TokenManager.setToken(tokenData, deviceData, (err, result) => {
+                        if (err) return cb(err as Error);
+                        accessToken = (result?.accessToken) || null;
+                        cb();
+                    });
                 },
                 (cb) => {
                     appVersion = {
@@ -174,10 +155,10 @@ class UserBaseController extends GenericController {
      * @param {any} payload.data Payload Data
      * @param {Function} callback Callback Function
      */
-    verifyOTP = (payload: { userData: {}, data: {} }, callback: Function) => {
-        const userData: any = payload.userData;
-        const payloadData: any = payload.data;
-        let customerData: any;
+    verifyOTP = (payload: { userData: GenericObject, data: GenericObject }, callback: GenericServiceCallback) => {
+        const userData: GenericObject = payload.userData;
+        const payloadData: GenericObject = payload.data;
+        let customerData: GenericObject;
         this.async.series(
             [
                 (cb) => {
@@ -185,10 +166,10 @@ class UserBaseController extends GenericController {
                         _id: userData.userId
                     };
                     const options = { lean: true };
-                    this.services.UserService.getRecord(query, {}, options, (err: Error, data: any) => {
-                        if (err) return cb(err);
-                        if (!this.checkIfTokenValid(data, cb)) return;
-                        customerData = data && data[0];
+                    this.services.UserService.getRecord(query, {}, options, (err, data) => {
+                        if (err) return cb(err as Error);
+                        if (!this.checkIfTokenValid(data, cb as GenericServiceCallback)) return;
+                        if (this.converters.convertToObjectArray(data)) customerData = data[0];
                         cb();
                     });
                 },
@@ -196,7 +177,6 @@ class UserBaseController extends GenericController {
                     //Check verification code :
                     if (payloadData.OTPCode == customerData.OTPCode) cb();
                     else cb(this.ERROR.INVALID_CODE as any);
-
                 },
                 (cb) => {
                     //trying to update customer
@@ -209,8 +189,8 @@ class UserBaseController extends GenericController {
                         $unset: { OTPCode: 1 }
                     };
                     const options = { new: true };
-                    this.services.UserService.updateRecord(criteria, setQuery, options, (err: Error, updatedData: any) => {
-                        if (err) cb(err);
+                    this.services.UserService.updateRecord(criteria, setQuery, options, (err, updatedData) => {
+                        if (err) cb(err as Error);
                         else {
                             if (!updatedData) cb(this.ERROR.INVALID_CODE as any);
                             else cb();
@@ -220,26 +200,27 @@ class UserBaseController extends GenericController {
             ],
             (err) => {
                 if (err) return callback(err);
-                callback();
+                callback(null);
             }
         );
     };
 
-    loginUser = (payloadData: any, callback: Function) => {
-        let userFound: any;
+    loginUser = (payloadData: any, callback: GenericServiceCallback) => {
+        let userFound: GenericObject | null = null;
         let accessToken: string;
         let successLogin = false;
-        let appVersion: any;
-        let updatedUserDetails: any;
+        let appVersion: GenericObject;
+        let updatedUserDetails: GenericObject;
         this.async.series(
             [
                 (cb) => {
                     const criteria = { emailId: payloadData.emailId };
                     const option = { lean: true };
-                    this.services.UserService.getRecord(criteria, {}, option, (err: Error, result: any) => {
-                        if (err) cb(err);
+                    this.services.UserService.getRecord(criteria, {}, option, (err, result) => {
+                        if (err) cb(err as Error);
                         else {
-                            userFound = (result && result[0]) || null;
+                            if (this.converters.convertToObjectArray(result))
+                                userFound = (result[0]) || null;
                             cb();
                         }
                     });
@@ -266,24 +247,26 @@ class UserBaseController extends GenericController {
                     }
                 },
                 (cb) => {
-                    const criteria = {
-                        _id: userFound._id
-                    };
-                    const setQuery = {
-                        deviceToken: payloadData.deviceToken,
-                        deviceType: payloadData.deviceType
-                    };
-                    this.services.UserService.updateRecord(
-                        criteria,
-                        setQuery,
-                        { new: true },
-                        (err: Error, data: any) => {
-                            updatedUserDetails = data;
-                            cb(err, data);
-                        }
-                    );
-                },
-                (cb) => {
+                    if (this.converters.convertToObject(userFound)) {
+                        const criteria = {
+                            _id: userFound._id
+                        };
+                        const setQuery = {
+                            deviceToken: payloadData.deviceToken,
+                            deviceType: payloadData.deviceType
+                        };
+                        this.services.UserService.updateRecord(
+                            criteria,
+                            setQuery,
+                            { new: true },
+                            (err, data) => {
+                                if (this.converters.convertToObject(data))
+                                    updatedUserDetails = data;
+                                cb(err as Error, data);
+                            }
+                        );
+                    } else cb(this.ERROR.USER_NOT_FOUND as any);
+                }, (cb) => {
                     const criteria = { emailId: payloadData.emailId };
                     const projection = {
                         password: 0,
@@ -294,22 +277,22 @@ class UserBaseController extends GenericController {
                         codeUpdatedAt: 0
                     };
                     const option = { lean: true };
-                    this.services.UserService.getRecord(criteria, projection, option, (err: Error, result: any) => {
-                        if (err) cb(err);
-                        else {
+                    this.services.UserService.getRecord(criteria, projection, option, (err, result) => {
+                        if (err) cb(err as Error);
+                        else if (this.converters.convertToObjectArray(result)) {
                             userFound = (result && result[0]) || null;
                             cb();
-                        }
+                        } else cb();
                     });
                 },
                 (cb) => {
-                    if (successLogin) {
+                    if (successLogin && this.converters.convertToObject(userFound)) {
                         const tokenData = {
                             id: userFound._id,
                             type: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER
                         };
-                        TokenManager.setToken(tokenData, payloadData.deviceData, (err: Error, output: any) => {
-                            if (err) return cb(err);
+                        TokenManager.setToken(tokenData, payloadData.deviceData, (err, output) => {
+                            if (err) return cb(err as Error);
                             if (output && output.accessToken) {
                                 accessToken = output && output.accessToken;
                                 cb();
@@ -335,7 +318,7 @@ class UserBaseController extends GenericController {
                 else {
                     callback(null, {
                         accessToken: accessToken,
-                        userDetails: this.universalFunctions.deleteUnnecessaryUserData(userFound),
+                        userDetails: this.universalFunctions.deleteUnnecessaryUserData(updatedUserDetails),
                         appVersion: appVersion
                     });
                 }
@@ -343,7 +326,7 @@ class UserBaseController extends GenericController {
         );
     };
 
-    resendOTP = (userData: any, callback: Function) => {
+    resendOTP = (userData: any, callback: GenericServiceCallback) => {
         /*
            Create a Unique 6 digit code
            Insert It Into Customer DB
@@ -358,11 +341,13 @@ class UserBaseController extends GenericController {
                         _id: userData.userId
                     };
                     const options = { lean: true };
-                    this.services.UserService.getRecord(query, {}, options, (err: Error, data: any) => {
-                        if (err) return cb(err);
+                    this.services.UserService.getRecord(query, {}, options, (err, data) => {
+                        if (err) return cb(err as Error);
                         if (!this.checkIfTokenValid(data, cb)) return;
-                        customerData = (data && data[0]) || null;
-                        if (customerData.emailVerified == true) return cb(this.ERROR.EMAIL_VERIFICATION_COMPLETE as any);
+                        if (this.converters.convertToObject(data)) {
+                            customerData = data[0] || null;
+                            if (customerData.emailVerified == true) return cb(this.ERROR.EMAIL_VERIFICATION_COMPLETE as any);
+                        }
                         cb();
                     });
                 },
@@ -397,7 +382,7 @@ class UserBaseController extends GenericController {
         );
     };
 
-    getOTP = (payloadData: any, callback: Function) => {
+    getOTP = (payloadData: any, callback: GenericServiceCallback) => {
         const query = {
             emailId: payloadData.emailId
         };
@@ -405,15 +390,15 @@ class UserBaseController extends GenericController {
             _id: 0,
             OTPCode: 1
         };
-        this.services.UserService.getRecord(query, projection, {}, (err: Error, data: any) => {
+        this.services.UserService.getRecord(query, projection, {}, (err, data) => {
             if (err) return callback(err);
-            const customerData = (data && data[0]) || null;
+            const customerData = (data && (data as any)[0]) || null;
             if (customerData == null || customerData.OTPCode == undefined) return callback(this.ERROR.OTP_CODE_NOT_FOUND);
             callback(null, customerData);
         });
     };
 
-    accessTokenLogin = (payload: any, callback: Function) => {
+    accessTokenLogin = (payload: any, callback: GenericServiceCallback) => {
         let appVersion: any;
         const userData = payload;
         let userFound: any;
@@ -424,8 +409,8 @@ class UserBaseController extends GenericController {
                         _id: userData.userId
                     };
                     this.services.UserService.getRecord(criteria, { password: 0 }, {}, (
-                        err: Error,
-                        data: any
+                        err,
+                        data
                     ) => {
                         if (err) return cb(err);
                         if (!this.checkIfTokenValid(data, cb)) return;
@@ -453,14 +438,11 @@ class UserBaseController extends GenericController {
         );
     };
 
-    logoutCustomer = (tokenData: any, callback: Function) => {
-        this.services.TokenService.deleteRecord({ _id: tokenData._id }, (err: Error) => {
-            if (err) callback(err);
-            else callback();
-        });
+    logoutCustomer = (tokenData: any, callback: GenericServiceCallback) => {
+        this.services.TokenService.deleteRecord({ _id: tokenData._id }, callback);
     };
 
-    getProfile = (userData: any, callback: Function) => {
+    getProfile = (userData: any, callback: GenericServiceCallback) => {
         const query = {
             _id: userData.userId
         };
@@ -470,16 +452,16 @@ class UserBaseController extends GenericController {
             accessToken: 0,
             codeUpdatedAt: 0
         };
-        this.services.UserService.getRecord(query, projection, {}, (err: Error, data: any) => {
+        this.services.UserService.getRecord(query, projection, {}, (err, data) => {
             if (err) return callback(err);
             if (!this.checkIfTokenValid(data, callback)) return;
             const customerData = (data && data[0]) || null;
             if (customerData.isBlocked) return callback(this.ERROR.ACCOUNT_BLOCKED as any);
-            callback();
+            callback(null, customerData);
         });
     };
 
-    changePassword = (userData: any, payloadData: any, callbackRoute: Function) => {
+    changePassword = (userData: any, payloadData: any, callbackRoute: GenericServiceCallback) => {
         const oldPassword = this.universalFunctions.CryptData(payloadData.oldPassword);
         const newPassword = this.universalFunctions.CryptData(payloadData.newPassword);
         let customerData: any;
@@ -489,11 +471,14 @@ class UserBaseController extends GenericController {
                     const query = {
                         _id: userData.userId
                     };
-                    this.services.UserService.getRecord(query, {}, {}, (err: Error, data: any) => {
-                        if (err) return cb(err);
-                        if (!this.checkIfTokenValid(data, cb)) return;
-                        customerData = (data && data[0]) || null;
-                        if (customerData.isBlocked) return cb(this.ERROR.ACCOUNT_BLOCKED as any);
+                    this.services.UserService.getRecord(query, {}, {}, (err, data) => {
+                        if (err) return cb(err as Error);
+                        if (this.converters.convertToObjectArray(data)) {
+                            if (!this.checkIfTokenValid(data, cb as GenericServiceCallback)) return;
+                            customerData = data[0] || null;
+                            if (customerData.isBlocked) return cb(this.ERROR.ACCOUNT_BLOCKED as any);
+                            return cb();
+                        }
                         cb();
                     });
                 },
@@ -506,8 +491,8 @@ class UserBaseController extends GenericController {
                         firstLogin: 1
                     };
                     this.services.UserService.getRecord(query, projection, {}, (
-                        err: Error,
-                        data: any
+                        err,
+                        data
                     ) => {
                         if (err) return callback(err);
                         customerData = (data && data[0]) || null;
@@ -543,11 +528,11 @@ class UserBaseController extends GenericController {
                     }
                     const condition = { _id: userData.userId };
                     this.services.UserService.updateRecord(condition, dataToUpdate, {}, (
-                        err: Error,
-                        user: any
+                        err,
+                        user
                     ) => {
-                        if (err) return callback(err);
-                        if (!user || user.length == 0) return callback(this.ERROR.NOT_FOUND as any);
+                        if (err) return callback(err as Error);
+                        if (!user || (this.converters.convertToObjectArray(user) && user.length == 0)) return callback(this.ERROR.NOT_FOUND as any);
                         callback();
                     });
                 }
@@ -559,7 +544,7 @@ class UserBaseController extends GenericController {
         );
     };
 
-    forgetPassword = (payloadData: any, callback: Function) => {
+    forgetPassword = (payloadData: any, callback: GenericServiceCallback) => {
         let dataFound: any;
         let code: any;
         let forgotDataEntry: any;
@@ -573,7 +558,7 @@ class UserBaseController extends GenericController {
                         _id: 1,
                         emailId: 1,
                         emailVerified: 1
-                    }, {}, (err: Error, data: any) => {
+                    }, {}, (err, data) => {
                         if (err) return cb(this.ERROR.PASSWORD_CHANGE_REQUEST_INVALID as any);
                         dataFound = (data && data[0]) || null;
                         if (dataFound == null) return cb(this.ERROR.USER_NOT_REGISTERED as any);
@@ -602,21 +587,21 @@ class UserBaseController extends GenericController {
                     const query = {
                         _id: dataFound._id
                     };
-                    this.services.UserService.updateRecord(query, dataToUpdate, {}, (err: Error) => {
-                        if (err) return cb(err);
+                    this.services.UserService.updateRecord(query, dataToUpdate, {}, (err) => {
+                        if (err) return cb(err as Error);
                         cb();
 
                     });
                 },
                 (cb) => {
-                    this.services.ForgetPasswordService.getForgetPasswordRequest(
+                    this.services.ForgetPasswordService.getRecord(
                         { customerID: dataFound._id }, {
                         _id: 1,
                         isChanged: 1
                     }, { lean: 1 },
-                        (err: Error, data: any) => {
-                            if (err) return cb(err);
-                            forgotDataEntry = (data && data[0]) || null;
+                        (err, data) => {
+                            if (err) return cb(err as Error);
+                            forgotDataEntry = (this.converters.convertToObjectArray(data) && data[0]) || null;
                             cb();
                         }
                     );
@@ -629,12 +614,12 @@ class UserBaseController extends GenericController {
                         isChanged: true
                     };
                     if (forgotDataEntry == null) {
-                        this.services.ForgetPasswordService.createForgetPasswordRequest(data, cb);
+                        this.services.ForgetPasswordService.createRecord(data, cb);
                     } else {
                         if (forgotDataEntry.isChanged == true) {
                             data.isChanged = false;
                         }
-                        this.services.ForgetPasswordService.updateForgetPasswordRequest(
+                        this.services.ForgetPasswordService.updateRecord(
                             { _id: forgotDataEntry._id },
                             data,
                             {},
@@ -643,7 +628,7 @@ class UserBaseController extends GenericController {
                     }
                 }
             ],
-            function (error, result) {
+            (error) => {
                 if (error) {
                     callback(error);
                 } else {
@@ -653,10 +638,10 @@ class UserBaseController extends GenericController {
         );
     };
 
-    resetPassword = (payloadData: any, callbackRoute: Function) => {
+    resetPassword = (payloadData: any, callbackRoute: GenericServiceCallback) => {
         let foundData: any;
         let customerId: any;
-        let data;
+        let data: GenericObject | null;
         this.async.series(
             [
                 (callback) => {
@@ -671,11 +656,12 @@ class UserBaseController extends GenericController {
                             emailVerified: 1
                         },
                         { lean: true },
-                        (err: Error, result: any) => {
+                        (err, result) => {
                             if (err) {
-                                callback(err);
+                                callback(err as Error);
                             } else {
-                                data = (result && result[0]) || null;
+                                if (this.converters.convertToObjectArray(result))
+                                    data = (result && result[0]) || null;
                                 if (data == null) {
                                     callback(this.ERROR.INCORRECT_ID as any);
                                 } else {
@@ -696,18 +682,19 @@ class UserBaseController extends GenericController {
                 },
                 (callback) => {
                     const query = { customerID: customerId, isChanged: false };
-                    this.services.ForgetPasswordService.getForgetPasswordRequest(
+                    this.services.ForgetPasswordService.getRecord(
                         query,
                         { __v: 0 },
                         {
                             limit: 1,
                             lean: true
                         },
-                        function (err: Error, data: any) {
+                        (err, data) => {
                             if (err) {
-                                callback(err);
+                                callback(err as Error);
                             } else {
-                                foundData = (data && data[0]) || null;
+                                if (this.converters.convertToObjectArray(data))
+                                    foundData = (data && data[0]) || null;
                                 callback();
                             }
                         }
@@ -737,11 +724,11 @@ class UserBaseController extends GenericController {
                         { _id: customerId },
                         dataToUpdate,
                         {},
-                        (error: Error, result: any) => {
+                        (error, result) => {
                             if (error) {
-                                callback(error);
+                                callback(error as Error);
                             } else {
-                                if (result.n === 0) {
+                                if ((result as GenericObject).n === 0) {
                                     callback(this.ERROR.USER_NOT_FOUND as any);
                                 } else {
                                     callback();
@@ -755,7 +742,7 @@ class UserBaseController extends GenericController {
                         isChanged: true,
                         changedAt: this.universalFunctions.getTimestamp()
                     };
-                    this.services.ForgetPasswordService.updateForgetPasswordRequest(
+                    this.services.ForgetPasswordService.updateRecord(
                         { customerID: customerId },
                         dataToUpdate,
                         {

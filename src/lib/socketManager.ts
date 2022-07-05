@@ -41,7 +41,7 @@ interface SocketData {
 class SocketManager {
     private readonly declare server: SocketServer | undefined;
     constructor(server: Server, options?: Partial<SocketServerOptions>) {
-        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("Startup disabled");
+        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("Socket Server disabled");
         else {
             const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
             global.socketLogger.info("Server Initalized");
@@ -69,7 +69,7 @@ class SocketManager {
     }
 
     disconnectSocketServer() {
-        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("Server Disabled");
+        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("Socket Server Disabled");
         this.server?.disconnectSockets(true);
     }
 

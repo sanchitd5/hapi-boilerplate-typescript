@@ -6,6 +6,9 @@ export interface FrozenObject {
     readonly [key: string]: any;
 }
 
+export type GenericServiceCallback = ((err: Error | unknown | string, data?: unknown) => void);
+
+
 export class GenericError extends Error {
     readonly declare misc: GenericObject | undefined;
     constructor(message: string, misc?: GenericObject) {
@@ -13,3 +16,18 @@ export class GenericError extends Error {
         this.misc = misc;
     }
 }
+
+export interface InternalError {
+    name: string;
+}
+
+export interface MongoError extends InternalError {
+    code: number;
+    errmsg: string;
+}
+
+export interface ApplicationError extends InternalError {
+    message: string;
+}
+
+export type ValidationError = InternalError
