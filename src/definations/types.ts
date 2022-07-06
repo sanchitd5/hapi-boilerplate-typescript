@@ -1,4 +1,5 @@
 import { Model } from 'sequelize';
+import Hapi from '@hapi/hapi';
 
 export interface GenericObject {
     [key: string]: any;
@@ -38,4 +39,17 @@ export type ValidationError = InternalError
 export class SqlModel extends Model {
     declare createdAt: Date;
     declare updatedAt: Date;
+}
+
+export enum AuthType { NONE, USER, ADMIN }
+
+export interface RouteProperties {
+    method: Hapi.Util.HTTP_METHODS_PARTIAL[] | string;
+    validate?: GenericObject;
+    path: string;
+    handler: Hapi.Lifecycle.Method;
+    auth: AuthType;
+    tags?: string[];
+    description?: string;
+    plugins?: GenericObject;
 }

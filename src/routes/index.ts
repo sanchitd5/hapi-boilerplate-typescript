@@ -15,7 +15,6 @@ const routes: Hapi.ServerRoute[] = [...DemoBaseRoute, ...UploadBaseRoute];
     if (config.APP_CONFIG.adminDatabase !== DATABASE.NONE) {
         routes.push(...AdminBaseRoute);
     }
-
 })();
 
 export default routes;
