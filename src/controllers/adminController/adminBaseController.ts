@@ -142,7 +142,7 @@ class AdminBaseController extends GenericController {
             else {
               if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
               else {
-                userFound = (this.converters.convert(data, this.converters.toObjectArray) && data[0]) || null;
+                userFound = this.convert.toObjectArray(data) && data[0] || null;
                 if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
                 else cb();
               }
@@ -312,7 +312,7 @@ class AdminBaseController extends GenericController {
           else {
             if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
-              userFound = (this.converters.toObjectArray(data) && data[0]) || null;
+              userFound = (this.convert.toObjectArray(data) && data[0]) || null;
               if (userFound?.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
               else cb()
             }

@@ -14,7 +14,7 @@ class GenericController {
     declare protected _: lodash.LoDashStatic;
     declare protected defaultService?: GenericMongoService;
     declare protected useAuth: boolean;
-    declare protected converters: typeof DataTypeConverters;
+    declare protected convert: typeof DataTypeConverters;
     constructor(service?: GenericMongoService) {
         this.services = Services;
         this.async = async;
@@ -22,7 +22,7 @@ class GenericController {
         this.config = config;
         this._ = lodash;
         this.defaultService = service;
-        this.converters = DataTypeConverters;
+        this.convert = DataTypeConverters;
     }
 }
 

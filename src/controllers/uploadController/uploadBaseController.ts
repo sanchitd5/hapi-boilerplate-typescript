@@ -31,8 +31,8 @@ class UploadBaseController extends GenericController {
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("imageFile") && imageFile && imageFile.hapi.filename) {
-          UploadManager.uploadProfilePicture(imageFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.image, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
-            if (err) {
+          UploadManager.uploadProfilePicture(imageFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.image, this.utils.generateRandomString(), (err, uploadedInfo: any) => {
+            if (this.convert.toError(err)) {
               cb(err)
             } else {
               imageFileURL = {
@@ -66,11 +66,12 @@ class UploadBaseController extends GenericController {
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("videoFile") && videoFile && videoFile.hapi.filename) {
-          UploadManager.uploadVideoWithThumbnail(videoFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.video, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
+          UploadManager.uploadVideoWithThumbnail(videoFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.video, this.utils.generateRandomString(), (err, uploadedInfo) => {
             if (err) {
               cb(err)
             } else {
-              videoFileURL = {
+
+              videoFileURL = this.convert.toObject(uploadedInfo) && {
                 original: uploadedInfo.videoFile,
                 thumbnail: uploadedInfo.videoFileThumb,
                 videoInfo: uploadedInfo.videoInfo
@@ -100,11 +101,11 @@ class UploadBaseController extends GenericController {
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("documentFile") && documentFile && documentFile.hapi.filename) {
-          UploadManager.uploadfileWithoutThumbnail(documentFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.files, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
-            if (err) {
+          UploadManager.uploadfileWithoutThumbnail(documentFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.files, this.utils.generateRandomString(), (err, uploadedInfo) => {
+            if (this.convert.toError(err)) {
               cb(err)
             } else {
-              documentFileUrl = {
+              documentFileUrl = this.convert.toObject(uploadedInfo) && {
                 original: uploadedInfo.docFile
               }
               cb();

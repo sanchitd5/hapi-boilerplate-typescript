@@ -18,7 +18,7 @@ export interface DatabaseConstants {
 export interface FrozenResponseMessage {
     readonly statusCode: number,
     readonly customMessage: string;
-    readonly type: string;
+    readonly type: string; 
 }
 
 export interface ErrorMessages {

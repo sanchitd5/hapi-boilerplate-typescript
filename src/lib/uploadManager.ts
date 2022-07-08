@@ -16,6 +16,8 @@ import fs from 'fs-extra';
 import AWS from 'aws-sdk';
 import ffmpeg from 'fluent-ffmpeg';
 import * as gmParent from 'gm';
+import { GenericServiceCallback } from '../definations';
+import converters from '../utils/converters';
 ///*
 // 1) Save Local Files
 // 2) Create Thumbnails
@@ -41,7 +43,7 @@ const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null |
     });
 
 }
-const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb: boolean, callback: Function) {
+const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb: boolean, callback: GenericServiceCallback) {
 
     let path = file.path, filename = file.name, folder = file.s3Folder;
     const mimeType = file.mimeType;
@@ -81,7 +83,7 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
             ContentType: mimeType
         };
 
-        s3bucket.putObject(params, function (err, data) {
+        s3bucket.putObject(params, function (err) {
             if (err) {
                 const error = {
                     response: {
@@ -105,16 +107,16 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
     });
 };
 
-function initParallelUpload(fileObj: any, withThumb: boolean, callbackParent: Function) {
+function initParallelUpload(fileObj: any, withThumb: boolean, callbackParent: GenericServiceCallback) {
     async.parallel([
-        function (callback) {
+        (callback) => {
             uploadLogger.info("uploading image");
-            uploadImageToS3Bucket(fileObj, false, callback);
+            uploadImageToS3Bucket(fileObj, false, callback as any);
         },
-        function (callback) {
+        (callback) => {
             if (withThumb) {
                 uploadLogger.info("uploading thumbnil");
-                uploadImageToS3Bucket(fileObj, true, callback);
+                uploadImageToS3Bucket(fileObj, true, callback as any);
             }
             else
                 callback(null);
@@ -127,7 +129,7 @@ function initParallelUpload(fileObj: any, withThumb: boolean, callbackParent: Fu
     })
 
 }
-const saveFile = function saveFile(fileData: any, path: string, callback: Function) {
+const saveFile = function saveFile(fileData: any, path: string, callback: GenericServiceCallback) {
 
     const file = fs.createWriteStream(path);
     uploadLogger.info("=========save file======");
@@ -162,7 +164,7 @@ const saveFile = function saveFile(fileData: any, path: string, callback: Functi
 
 
 };
-const createThumbnailImage = function createThumbnailImage(path: string, name: string, callback: Function) {
+const createThumbnailImage = function createThumbnailImage(path: string, name: string, callback: GenericServiceCallback) {
     uploadLogger.info('------first-----');
     const gm = gmParent.subClass({ imageMagick: true });
     const thumbPath = path + 'thumb/' + "Thumb_" + name;
@@ -189,38 +191,38 @@ const createThumbnailImage = function createThumbnailImage(path: string, name: s
         })
 };
 
-const getVideoInfo = function (filePath: string, callback: Function) {
+const getVideoInfo = function (filePath: string, callback: GenericServiceCallback) {
     ffmpeg.ffprobe(filePath, function (err, data) {
         if (err) callback(err)
         else callback(null, data)
     })
 }
 
-const createThumbnailVideo = function (filePath: string, name: string, videoData: any, callback: Function) {
+const createThumbnailVideo = function (filePath: string, name: string, videoData: any, callback: GenericServiceCallback) {
     uploadLogger.info('------first-----');
     const thumbPath = filePath + 'thumb/' + 'Thumb_' + name.split('.').slice(0, -1).join('.') + '.jpg';
     const durationInSeconds = videoData.format.duration;
     const frameIntervalInSeconds = Math.floor(durationInSeconds);
     ffmpeg().input(filePath + name).outputOptions([`-vf fps=1/${frameIntervalInSeconds}`]).output(thumbPath).on('end', function () {
-        callback()
+        callback(null)
     }).on('error', function (err) {
         callback(err)
     }).run()
 };
 
-function uploadFile(otherConstants: any, fileDetails: any, createThumbnail: boolean, callbackParent: Function) {
+function uploadFile(otherConstants: any, fileDetails: any, createThumbnail: boolean, callbackParent: GenericServiceCallback) {
     const filename = fileDetails.name;
     const TEMP_FOLDER = otherConstants.TEMP_FOLDER;
     const s3Folder = otherConstants.s3Folder;
     const file = fileDetails.file;
     const mimiType = file.hapi.headers['content-type'];
     async.waterfall([
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             uploadLogger.info('TEMP_FOLDER + filename' + TEMP_FOLDER + filename)
             saveFile(file, TEMP_FOLDER + filename, callback);
             uploadLogger.info("*******save File******")
         },
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             if (createThumbnail) {
                 createThumbnailImage(TEMP_FOLDER, filename, callback);
                 uploadLogger.info("*******thumbnailImage********")
@@ -229,7 +231,7 @@ function uploadFile(otherConstants: any, fileDetails: any, createThumbnail: bool
             else
                 callback(null);
         },
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             const fileObj = {
                 path: TEMP_FOLDER,
                 name: filename,
@@ -251,7 +253,7 @@ function uploadFile(otherConstants: any, fileDetails: any, createThumbnail: bool
 }
 
 
-function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail: boolean, callbackParent: Function) {
+function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail: boolean, callbackParent: GenericServiceCallback) {
     const filename = fileDetails.name;
     const TEMP_FOLDER = otherConstants.TEMP_FOLDER;
     const s3Folder = otherConstants.s3Folder;
@@ -259,21 +261,21 @@ function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail:
     const mimiType = file.hapi.headers['content-type'];
     let videoData: any;
     async.waterfall([
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             uploadLogger.info('TEMP_FOLDER + filename' + TEMP_FOLDER + filename)
             saveFile(file, TEMP_FOLDER + filename, callback);
             uploadLogger.info("*******save File******", callback)
         },
-        function (callback: Function) {
-            getVideoInfo(TEMP_FOLDER + filename, function (err: Error, data: any) {
+        function (callback: GenericServiceCallback) {
+            getVideoInfo(TEMP_FOLDER + filename, (err, data) => {
                 if (err) callback(err)
                 else {
                     videoData = data;
-                    callback()
+                    callback(null)
                 }
             })
         },
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             if (createThumbnail) {
                 createThumbnailVideo(TEMP_FOLDER, filename, videoData, callback);
             }
@@ -281,7 +283,7 @@ function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail:
             else
                 callback(null);
         },
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             const fileObj = {
                 path: TEMP_FOLDER,
                 name: filename,
@@ -303,12 +305,12 @@ function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail:
 }
 
 
-function uploadProfilePicture(profilePicture: any, folder: string, filename: string, callbackParent: Function) {
+function uploadProfilePicture(profilePicture: any, folder: string, filename: string, callbackParent: GenericServiceCallback) {
     const baseFolder = folder + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.profilePicture;
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
     async.waterfall([
-        function (callback: Function) {
+        function (callback: GenericServiceCallback) {
             const profileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const profileFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
             const profilePictureName = generateFilenameWithExtension(profilePicture.hapi.filename, "Profile_" + filename);
@@ -343,12 +345,12 @@ function uploadProfilePicture(profilePicture: any, folder: string, filename: str
         })
 }
 
-function uploadfileWithoutThumbnail(docFile: any, folder: string, filename: string, callbackParent: Function) {
+const uploadfileWithoutThumbnail = (docFile: any, folder: string, filename: string, callbackParent: GenericServiceCallback) => {
     const baseFolder = folder + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.docs;
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
     async.waterfall([
-        function (callback: Function) {
+        (callback) => {
             const docFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             //var profileFolderThumb =CONFIG.awsS3Config.s3BucketCredentials.folder.thumb;
             const docFileName = generateFilenameWithExtension(docFile.hapi.filename, "Docs_" + filename);
@@ -383,13 +385,13 @@ function uploadfileWithoutThumbnail(docFile: any, folder: string, filename: stri
         })
 }
 
-function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: string, callbackParent: Function) {
+function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: string, callbackParent: GenericServiceCallback) {
     const baseFolder = folder + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.video;
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
     let fileDetails, otherConstants;
     async.waterfall([
-        function (callback: Function) {
+        (callback) => {
             const videoFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const videoFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
             const videoFileName = generateFilenameWithExtension(videoFile.hapi.filename, "Video_" + filename);
@@ -408,10 +410,10 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
             };
             urls.videoFile = baseURL + videoFileFolder + '/' + videoFileName;
             urls.videoFileThumb = baseURL + videoFolderThumb + '/Thumb_' + videoFileName.split('.').slice(0, -1).join('.') + '.jpg';
-            uploadVideoFile(otherConstants, fileDetails, true, function (err: Error, data: any) {
+            uploadVideoFile(otherConstants, fileDetails, true, (err, data) => {
                 if (err) callback(err)
                 else {
-                    urls.videoInfo = data.videoData;
+                    urls.videoInfo = converters.toObject(data) && data.videoData;
                     callback()
                 }
             });
@@ -430,7 +432,7 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
         })
 }
 
-function saveCSVFile(fileData: any, path: string, callback: Function) {
+function saveCSVFile(fileData: any, path: string, callback: GenericServiceCallback) {
     fs.copy(fileData, path).then((data) => callback(null, data)).catch((e) => callback(e));
 }
 

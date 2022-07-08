@@ -2,6 +2,7 @@ import { CastError } from "mongoose";
 import { ApplicationError, FrozenResponseMessage, GenericObject, MongoError, ValidationError } from "../definations";
 
 class DataTypeConverters {
+
     toObjectArray = (data: unknown): data is Array<GenericObject> => !!data && !!(data as Array<unknown>).length;
     toUnknownArray = (data: unknown): data is Array<unknown> => !!data && !!(data as Array<unknown>).length;
     toObject = (data: unknown): data is GenericObject => !!data;
@@ -12,11 +13,6 @@ class DataTypeConverters {
     isApplicationError = (error: GenericObject): error is ApplicationError => error.name === 'ApplicationError';
     isValidationError = (error: GenericObject): error is ValidationError => error.name === 'ValidationError';
     isCastError = (error: GenericObject): error is CastError => error.name === 'CastError';
-    convert = (data: unknown, condition: (data: unknown) => any): any => {
-        if (condition(data)) {
-            return data;
-        }
-    }
 }
 
 export default new DataTypeConverters();

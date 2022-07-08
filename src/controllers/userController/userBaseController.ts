@@ -40,7 +40,7 @@ class UserBaseController extends GenericController {
 						};
 						this.services.UserService?.getRecord(query, {}, { lean: true }, (error, data) => {
 							if (error) cb(error as Error);
-							else if (this.converters.toObjectArray(data)) {
+							else if (this.convert.toObjectArray(data)) {
 								if (!data.length) return cb();
 								if (data[0].emailVerified == true) return cb(this.ERROR.USER_ALREADY_REGISTERED as any);
 								this.services.UserService?.deleteRecord({ _id: data[0]._id }, (err) => {
@@ -171,7 +171,7 @@ class UserBaseController extends GenericController {
 					this.services.UserService?.getRecord(query, {}, options, (err, data) => {
 						if (err) return cb(err as Error);
 						if (!this.checkIfTokenValid(data, cb as GenericServiceCallback)) return;
-						if (this.converters.toObjectArray(data)) customerData = data[0];
+						if (this.convert.toObjectArray(data)) customerData = data[0];
 						cb();
 					});
 				},
@@ -221,7 +221,7 @@ class UserBaseController extends GenericController {
 					this.services.UserService?.getRecord(criteria, {}, option, (err, result) => {
 						if (err) cb(err as Error);
 						else {
-							if (this.converters.toObjectArray(result))
+							if (this.convert.toObjectArray(result))
 								userFound = (result[0]) || null;
 							cb();
 						}
@@ -249,7 +249,7 @@ class UserBaseController extends GenericController {
 					}
 				},
 				(cb) => {
-					if (this.converters.toObject(userFound)) {
+					if (this.convert.toObject(userFound)) {
 						const criteria = {
 							_id: userFound._id
 						};
@@ -262,7 +262,7 @@ class UserBaseController extends GenericController {
 							setQuery,
 							{ new: true },
 							(err, data) => {
-								if (this.converters.toObject(data))
+								if (this.convert.toObject(data))
 									updatedUserDetails = data;
 								cb(err as Error, data);
 							}
@@ -281,14 +281,14 @@ class UserBaseController extends GenericController {
 					const option = { lean: true };
 					this.services.UserService?.getRecord(criteria, projection, option, (err, result) => {
 						if (err) cb(err as Error);
-						else if (this.converters.toObjectArray(result)) {
+						else if (this.convert.toObjectArray(result)) {
 							userFound = (result && result[0]) || null;
 							cb();
 						} else cb();
 					});
 				},
 				(cb) => {
-					if (successLogin && this.converters.toObject(userFound)) {
+					if (successLogin && this.convert.toObject(userFound)) {
 						const tokenData = {
 							id: userFound._id,
 							type: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.USER
@@ -346,7 +346,7 @@ class UserBaseController extends GenericController {
 					this.services.UserService?.getRecord(query, {}, options, (err, data) => {
 						if (err) return cb(err as Error);
 						if (!this.checkIfTokenValid(data, cb)) return;
-						if (this.converters.toObject(data)) {
+						if (this.convert.toObject(data)) {
 							customerData = data[0] || null;
 							if (customerData.emailVerified == true) return cb(this.ERROR.EMAIL_VERIFICATION_COMPLETE as any);
 						}
@@ -475,7 +475,7 @@ class UserBaseController extends GenericController {
 					};
 					this.services.UserService?.getRecord(query, {}, {}, (err, data) => {
 						if (err) return cb(err as Error);
-						if (this.converters.toObjectArray(data)) {
+						if (this.convert.toObjectArray(data)) {
 							if (!this.checkIfTokenValid(data, cb as GenericServiceCallback)) return;
 							customerData = data[0] || null;
 							if (customerData.isBlocked) return cb(this.ERROR.ACCOUNT_BLOCKED as any);
@@ -534,7 +534,7 @@ class UserBaseController extends GenericController {
 						user
 					) => {
 						if (err) return callback(err as Error);
-						if (!user || (this.converters.toObjectArray(user) && user.length == 0)) return callback(this.ERROR.NOT_FOUND as any);
+						if (!user || (this.convert.toObjectArray(user) && user.length == 0)) return callback(this.ERROR.NOT_FOUND as any);
 						callback();
 					});
 				}
@@ -603,7 +603,7 @@ class UserBaseController extends GenericController {
 					}, { lean: 1 },
 						(err, data) => {
 							if (err) return cb(err as Error);
-							forgotDataEntry = (this.converters.toObjectArray(data) && data[0]) || null;
+							forgotDataEntry = (this.convert.toObjectArray(data) && data[0]) || null;
 							cb();
 						}
 					);
@@ -662,7 +662,7 @@ class UserBaseController extends GenericController {
 							if (err) {
 								callback(err as Error);
 							} else {
-								if (this.converters.toObjectArray(result))
+								if (this.convert.toObjectArray(result))
 									data = (result && result[0]) || null;
 								if (data == null) {
 									callback(this.ERROR.INCORRECT_ID as any);
@@ -695,7 +695,7 @@ class UserBaseController extends GenericController {
 							if (err) {
 								callback(err as Error);
 							} else {
-								if (this.converters.toObjectArray(data))
+								if (this.convert.toObjectArray(data))
 									foundData = (data && data[0]) || null;
 								callback();
 							}

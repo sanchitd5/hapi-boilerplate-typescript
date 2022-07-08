@@ -66,7 +66,7 @@ export const generateUniqueCode = (noOfDigits: number, userRole: string, callbac
     async.series([
         (cb) => {
             //Push All generated codes in excludeAry
-            if (userRole == config.APP_CONSTANTS.DATABASE.USER_ROLES.USER) {
+            if (userRole === config.APP_CONSTANTS.DATABASE.USER_ROLES.USER) {
                 Services.UserService?.getRecord({ OTPCode: { $ne: null } }, { OTPCode: 1 }, { lean: true }, (err: any, data: any) => {
                     if (err) {
                         cb(err);
@@ -78,13 +78,15 @@ export const generateUniqueCode = (noOfDigits: number, userRole: string, callbac
                     }
                 })
             }
-            else cb(converters.convert(config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR, converters.toError));
+            else { 
+                cb(config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR as any);
+            }
         }, (cb) => {
             //Generate Random Code of digits specified
             generatedRandomCode = generateRandomNumbers(noOfDigits, excludeArray);
             cb();
 
-        }], (err, data) => {
+        }], (err) => {
             callback(err, { number: generatedRandomCode })
         });
 };
