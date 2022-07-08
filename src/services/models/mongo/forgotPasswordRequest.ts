@@ -1,12 +1,12 @@
 import mongoose, { Schema } from "mongoose";
-import universalFunctions from "../../../utils/universalFunctions"
+import Config from "../../../config"
 
 const forgetPasswordRequests = new Schema({
     customerID: { type: Schema.Types.ObjectId, ref: 'users' },
     userType: {
         type: String,
         enum: [
-            universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER
+            Config.APP_CONSTANTS.DATABASE.USER_ROLES.USER
         ],
         required: true
     },

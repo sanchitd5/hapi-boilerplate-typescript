@@ -27,11 +27,11 @@ class UploadBaseController extends GenericController {
         thumbnail: null
       }
     }
-    global.appLogger.info("????????", this.universalFunctions.checkFileExtension(imageFile.hapi.filename))
+    global.appLogger.info("????????", this.utils.checkFileExtension(imageFile.hapi.filename))
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("imageFile") && imageFile && imageFile.hapi.filename) {
-          UploadManager.uploadProfilePicture(imageFile, this.universalFunctions.CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.image, this.universalFunctions.generateRandomString(), (err: Error, uploadedInfo: any) => {
+          UploadManager.uploadProfilePicture(imageFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.image, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
             if (err) {
               cb(err)
             } else {
@@ -62,11 +62,11 @@ class UploadBaseController extends GenericController {
         thumbnail: null
       }
     }
-    global.appLogger.info("????????", this.universalFunctions.checkFileExtension(videoFile.hapi.filename))
+    global.appLogger.info("????????", this.utils.checkFileExtension(videoFile.hapi.filename))
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("videoFile") && videoFile && videoFile.hapi.filename) {
-          UploadManager.uploadVideoWithThumbnail(videoFile, this.universalFunctions.CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.video, this.universalFunctions.generateRandomString(), (err: Error, uploadedInfo: any) => {
+          UploadManager.uploadVideoWithThumbnail(videoFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.video, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
             if (err) {
               cb(err)
             } else {
@@ -100,7 +100,7 @@ class UploadBaseController extends GenericController {
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("documentFile") && documentFile && documentFile.hapi.filename) {
-          UploadManager.uploadfileWithoutThumbnail(documentFile, this.universalFunctions.CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.files, this.universalFunctions.generateRandomString(), (err: Error, uploadedInfo: any) => {
+          UploadManager.uploadfileWithoutThumbnail(documentFile, this.config.AWS_S3_CONFIG.s3BucketCredentials.folder.files, this.utils.generateRandomString(), (err: Error, uploadedInfo: any) => {
             if (err) {
               cb(err)
             } else {

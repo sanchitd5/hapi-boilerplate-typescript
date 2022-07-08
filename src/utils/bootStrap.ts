@@ -1,6 +1,6 @@
 import Service from '../services';
 import async from "async";
-import UniversalFunctions from "./universalFunctions";
+import { CryptData, getTimestamp } from "./index";
 import { superAdmins } from "../config/users";
 import { GenericServiceCallback, DATABASE } from '../definations';
 import config from '../config';
@@ -9,7 +9,7 @@ const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback)
     let _skip = false;
     async.series([
         (cb) => {
-            Service.AdminService.getRecord({ emailId: adminData.emailId }, {}, {}, (err, data) => {
+            Service.AdminService?.getRecord({ emailId: adminData.emailId }, {}, {}, (err, data) => {
                 if (err) cb(err)
                 else {
                     if (data.length > 0) {
@@ -22,7 +22,7 @@ const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback)
         },
         (cb) => {
             if (!_skip) {
-                Service.AdminService.createRecord(adminData, (err: any) => {
+                Service.AdminService?.createRecord(adminData, (err: any) => {
                     if (err) {
                         appLogger.debug("Implementation err", err);
                         cb(err)
@@ -50,10 +50,10 @@ const bootstrapAdmin = (callbackParent: GenericServiceCallback) => {
             return (embeddedCB) => {
                 const adminData = {
                     emailId: admin.email,
-                    password: UniversalFunctions.CryptData(admin.password),
+                    password: CryptData(admin.password),
                     fullName: admin.name,
-                    userType: UniversalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN,
-                    createdAt: UniversalFunctions.getTimestamp(),
+                    userType: config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN,
+                    createdAt: getTimestamp(),
                     firstLogin: true
                 };
                 switch (config.APP_CONFIG.adminDatabase) {

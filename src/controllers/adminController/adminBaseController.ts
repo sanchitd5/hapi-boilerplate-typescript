@@ -8,8 +8,9 @@ class AdminBaseController extends GenericController {
 
   constructor() {
     super();
-    this.CONFIG = this.universalFunctions.CONFIG;
-    this.ERROR = this.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR;
+    this.ERROR = this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
+    if (this.services.AdminService === undefined) throw Error("Admin management disabled");
+    if (this.services.UserService === undefined) throw Error("User management disabled");
   }
 
   private checkIfTokenValid = (data: any, callback: GenericServiceCallback) => {
@@ -33,7 +34,7 @@ class AdminBaseController extends GenericController {
     this.async.series(
       [
         (cb) => {
-          this.services.AdminService.getRecord({ emailId: emailId }, {}, {}, (err, result) => {
+          this.services.AdminService?.getRecord({ emailId: emailId }, {}, {}, (err, result) => {
             if (err) cb(err);
             else {
               userFound = (result && result[0]) || null;
@@ -46,7 +47,7 @@ class AdminBaseController extends GenericController {
           if (!userFound)
             cb(this.ERROR.USER_NOT_FOUND as any);
           else {
-            if (userFound && userFound.password != this.universalFunctions.CryptData(password)) {
+            if (userFound && userFound.password != this.utils.CryptData(password)) {
               cb(this.ERROR.INCORRECT_PASSWORD as any);
             } else if (userFound.isBlocked == true) {
               cb(this.ERROR.ACCOUNT_BLOCKED as any);
@@ -57,7 +58,7 @@ class AdminBaseController extends GenericController {
           }
         },
         (cb) => {
-          this.services.AdminService.getRecord({ emailId: emailId }, { password: 0 }, {}, (err, result) => {
+          this.services.AdminService?.getRecord({ emailId: emailId }, { password: 0 }, {}, (err, result) => {
             if (err) return cb(err);
             userFound = (result && result[0]) || null;
             cb();
@@ -67,7 +68,7 @@ class AdminBaseController extends GenericController {
           if (successLogin) {
             const tokenData = {
               id: userFound._id,
-              type: this.universalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
+              type: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
             };
             TokenManager.setToken(tokenData, payload.deviceData, (err, result) => {
               if (err) {
@@ -102,7 +103,7 @@ class AdminBaseController extends GenericController {
     this.async.series(
       [
         (cb) => {
-          this.services.AdminService.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
+          this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
             if (err) return cb(err);
             if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             userFound = (data && data[0]) || null;
@@ -114,7 +115,7 @@ class AdminBaseController extends GenericController {
         if (!err)
           return callback(null, {
             accessToken: userData.accessToken,
-            adminDetails: this.universalFunctions.deleteUnnecessaryUserData(userFound),
+            adminDetails: this.utils.deleteUnnecessaryUserData(userFound),
             appVersion: {
               latestIOSVersion: 100,
               latestAndroidVersion: 100,
@@ -136,13 +137,13 @@ class AdminBaseController extends GenericController {
           const criteria = {
             _id: userData.adminId
           };
-          this.services.AdminService.getRecord(criteria, { password: 0 }, {}, (err, data) => {
+          this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
             if (err) cb(err);
             else {
               if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
               else {
-                userFound = (this.converters.convertToObjectArray(data) && data[0]) || null;
-                if (userFound.userType != this.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+                userFound = (this.converters.convert(data, this.converters.toObjectArray) && data[0]) || null;
+                if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
                 else cb();
               }
             }
@@ -152,7 +153,7 @@ class AdminBaseController extends GenericController {
           const criteria = {
             emailId: payloadData.emailId
           }
-          this.services.AdminService.getRecord(criteria, {}, {}, (err, data) => {
+          this.services.AdminService?.getRecord(criteria, {}, {}, (err, data) => {
             if (err) cb(err)
             else {
               if (data.length > 0) cb(this.ERROR.USERNAME_EXIST)
@@ -161,10 +162,10 @@ class AdminBaseController extends GenericController {
           })
         },
         (cb) => {
-          payloadData.initialPassword = this.universalFunctions.generateRandomString();
-          payloadData.password = this.universalFunctions.CryptData(payloadData.initialPassword);
-          payloadData.userType = this.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN;
-          this.services.AdminService.createRecord(payloadData, (err, data) => {
+          payloadData.initialPassword = this.utils.generateRandomString();
+          payloadData.password = this.utils.CryptData(payloadData.initialPassword);
+          payloadData.userType = this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN;
+          this.services.AdminService?.createRecord(payloadData, (err, data) => {
             if (err) cb(err)
             else {
               newAdmin = data;
@@ -175,7 +176,7 @@ class AdminBaseController extends GenericController {
       ],
       (err) => {
         if (err) return callback(err);
-        callback(null, { adminDetails: this.universalFunctions.deleteUnnecessaryUserData(newAdmin) });
+        callback(null, { adminDetails: this.utils.deleteUnnecessaryUserData(newAdmin) });
       }
     );
   }
@@ -188,21 +189,21 @@ class AdminBaseController extends GenericController {
         const criteria = {
           _id: userData.adminId
         };
-        this.services.AdminService.getRecord(criteria, { password: 0 }, {}, (err, data) => {
+        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
           if (err) cb(err);
           else {
             if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
               userFound = (data && data[0]) || null;
-              if (userFound.userType != this.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+              if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
               else cb();
             }
           }
         });
       },
       (cb) => {
-        this.services.AdminService.getRecord({
-          userType: this.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
+        this.services.AdminService?.getRecord({
+          userType: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
         }, { password: 0, __v: 0, createdAt: 0 }, {}, (err, data) => {
           if (err) cb(err)
           else {
@@ -224,20 +225,20 @@ class AdminBaseController extends GenericController {
         const criteria = {
           _id: userData.adminId
         };
-        this.services.AdminService.getRecord(criteria, { password: 0 }, {}, (err, data) => {
+        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
           if (err) cb(err);
           else {
             if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
               userFound = (data && data[0]) || null;
-              if (userFound.userType != this.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+              if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
               else cb();
             }
           }
         });
       },
       (cb) => {
-        this.services.AdminService.getRecord({ _id: payloadData.adminId }, {}, {}, (err, data) => {
+        this.services.AdminService?.getRecord({ _id: payloadData.adminId }, {}, {}, (err, data) => {
           if (err) cb(err)
           else {
             if (data.length == 0) cb(this.ERROR.USER_NOT_FOUND)
@@ -246,7 +247,7 @@ class AdminBaseController extends GenericController {
         })
       },
       (cb) => {
-        this.services.AdminService.updateRecord({ _id: payloadData.adminId }, {
+        this.services.AdminService?.updateRecord({ _id: payloadData.adminId }, {
           $set: {
             isBlocked: payloadData.block
           }
@@ -270,24 +271,24 @@ class AdminBaseController extends GenericController {
         const criteria = {
           _id: userData.adminId
         };
-        this.services.AdminService.getRecord(criteria, { password: 0 }, {}, (err, data) => {
+        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
           if (err) return cb(err);
           if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           cb();
         });
       },
       (cb) => {
-        this.services.UserService.getRecord({ emailId: payloadData.emailId }, {}, {}, (err, data) => {
+        this.services.UserService?.getRecord({ emailId: payloadData.emailId }, {}, {}, (err, data) => {
           if (err) return cb(err);
           if (data.length != 0) return cb(this.ERROR.USER_ALREADY_REGISTERED);
           cb();
         })
       },
       (cb) => {
-        payloadData.initialPassword = this.universalFunctions.generateRandomString();
-        payloadData.password = this.universalFunctions.CryptData(payloadData.initialPassword);
+        payloadData.initialPassword = this.utils.generateRandomString();
+        payloadData.password = this.utils.CryptData(payloadData.initialPassword);
         payloadData.emailVerified = true;
-        this.services.UserService.createRecord(payloadData, (err, data) => {
+        this.services.UserService?.createRecord(payloadData, (err, data) => {
           if (err) cb(err)
           else {
             newUserData = data;
@@ -297,7 +298,7 @@ class AdminBaseController extends GenericController {
       }
     ], (err) => {
       if (err) callback(err)
-      else callback(null, { userData: this.universalFunctions.deleteUnnecessaryUserData(newUserData) })
+      else callback(null, { userData: this.utils.deleteUnnecessaryUserData(newUserData) })
     })
   }
 
@@ -306,12 +307,12 @@ class AdminBaseController extends GenericController {
     let userFound: GenericObject | null;
     this.async.series([
       (cb) => {
-        this.services.AdminService.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
+        this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
           if (err) cb(err);
           else {
             if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
-              userFound = (this.converters.convertToObjectArray(data) && data[0]) || null;
+              userFound = (this.converters.toObjectArray(data) && data[0]) || null;
               if (userFound?.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
               else cb()
             }
@@ -328,7 +329,7 @@ class AdminBaseController extends GenericController {
           __v: 0,
           registrationDate: 0
         }
-        this.services.UserService.getRecord({}, projection, {}, (err, data) => {
+        this.services.UserService?.getRecord({}, projection, {}, (err, data) => {
           if (err) cb(err)
           else {
             userList = data;
@@ -350,8 +351,8 @@ class AdminBaseController extends GenericController {
   }
 
   changePassword(userData, payloadData, callbackRoute) {
-    const oldPassword = this.universalFunctions.CryptData(payloadData.oldPassword);
-    const newPassword = this.universalFunctions.CryptData(payloadData.newPassword);
+    const oldPassword = this.utils.CryptData(payloadData.oldPassword);
+    const newPassword = this.utils.CryptData(payloadData.newPassword);
     let customerData;
     this.async.series(
       [
@@ -360,7 +361,7 @@ class AdminBaseController extends GenericController {
             _id: userData.adminId
           };
           const options = { lean: true };
-          this.services.AdminService.getRecord(query, {}, options, (err, data) => {
+          this.services.AdminService?.getRecord(query, {}, options, (err, data) => {
             if (err) {
               cb(err);
             } else {
@@ -382,7 +383,7 @@ class AdminBaseController extends GenericController {
             firstLogin: 1
           };
           const options = { lean: true };
-          this.services.AdminService.getRecord(query, projection, options, (
+          this.services.AdminService?.getRecord(query, projection, options, (
             err,
             data
           ) => {
@@ -424,7 +425,7 @@ class AdminBaseController extends GenericController {
           else {
             dataToUpdate = { $set: { password: newPassword } };
           }
-          this.services.AdminService.updateRecord({ _id: userData.adminId }, dataToUpdate, {}, (err, user) => {
+          this.services.AdminService?.updateRecord({ _id: userData.adminId }, dataToUpdate, {}, (err, user) => {
             if (err) {
               callback(err);
             } else {
@@ -448,7 +449,7 @@ class AdminBaseController extends GenericController {
     let userFound;
     this.async.series([
       (cb) => {
-        this.services.AdminService.getRecord({
+        this.services.AdminService?.getRecord({
           _id: userData.adminId
         }, { password: 0 }, {}, (err, data) => {
           if (err) cb(err);
@@ -463,7 +464,7 @@ class AdminBaseController extends GenericController {
         });
       },
       (cb) => {
-        this.services.UserService.getRecord({ _id: payloadData.userId }, {}, {}, (err, data) => {
+        this.services.UserService?.getRecord({ _id: payloadData.userId }, {}, {}, (err, data) => {
           if (err) cb(err)
           else {
             if (data.length == 0) cb(this.ERROR.USER_NOT_FOUND)
@@ -480,7 +481,7 @@ class AdminBaseController extends GenericController {
             isBlocked: payloadData.block
           }
         }
-        this.services.UserService.updateRecord(criteria, dataToUpdate, {}, (err, data) => {
+        this.services.UserService?.updateRecord(criteria, dataToUpdate, {}, (err, data) => {
           if (err) return cb(err);
           userFound = data;
           cb()

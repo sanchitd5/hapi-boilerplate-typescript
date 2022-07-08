@@ -1,7 +1,8 @@
 import Hapi from '@hapi/hapi';
-import UniversalFunctions from "../../utils/universalFunctions";
+import { sendError, sendSuccess, failActionFunction } from "../../utils";
 import Joi from "joi";
 import Controller from "../../controllers";
+import Config from '../../config';
 
 const uploadImage: Hapi.ServerRoute =
 {
@@ -12,9 +13,9 @@ const uploadImage: Hapi.ServerRoute =
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadImage(payloadData, (err, data) => {
         if (err) {
-          reject(UniversalFunctions.sendError(err));
+          reject(sendError(err));
         } else {
-          resolve(UniversalFunctions.sendSuccess(UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
         }
       });
     });
@@ -35,11 +36,11 @@ const uploadImage: Hapi.ServerRoute =
           .required()
           .description('image file')
       }).label("Upload: Image"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       'hapi-swagger': {
-        responseMessages: UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -55,9 +56,9 @@ const uploadVideo: Hapi.ServerRoute =
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadVideo(payloadData, (err, data) => {
         if (err) {
-          reject(UniversalFunctions.sendError(err));
+          reject(sendError(err));
         } else {
-          resolve(UniversalFunctions.sendSuccess(UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
         }
       });
     });
@@ -78,11 +79,11 @@ const uploadVideo: Hapi.ServerRoute =
           .required()
           .description('video file')
       }).label("Upload: Video"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       'hapi-swagger': {
-        responseMessages: UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -98,9 +99,9 @@ const uploadDocument: Hapi.ServerRoute =
     return new Promise((resolve, reject) => {
       Controller.UploadBaseController.uploadDocument(payloadData, (err, data) => {
         if (err) {
-          reject(UniversalFunctions.sendError(err));
+          reject(sendError(err));
         } else {
-          resolve(UniversalFunctions.sendSuccess(UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
         }
       });
     });
@@ -121,11 +122,11 @@ const uploadDocument: Hapi.ServerRoute =
           .required()
           .description('document file')
       }).label("Upload: Document"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       'hapi-swagger': {
-        responseMessages: UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }

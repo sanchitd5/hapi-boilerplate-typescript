@@ -1,45 +1,39 @@
 import Hapi from '@hapi/hapi';
-import UniversalFunctions from "../../utils/universalFunctions";
+import { createRoute, sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
 import Joi from "joi";
 import Controller from "../../controllers";
 import Config from '../../config';
+import { AuthType } from '../../definations';
 
 
-const adminLogin: Hapi.ServerRoute = {
+const adminLogin: Hapi.ServerRoute = createRoute({
   method: "POST",
   path: "/api/admin/login",
-  options: {
-    description: "Admin Login",
-    tags: ["api", "admin"],
-    handler: (request) => {
-      return new Promise((resolve, reject) => {
-        Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
-          if (error) return reject(UniversalFunctions.sendError(error));
-          resolve(UniversalFunctions.sendSuccess(undefined, data));
-
-        });
+  description: "Admin Login",
+  tags: ["api", "admin"],
+  handler: (request) => {
+    return new Promise((resolve, reject) => {
+      Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
+        if (error) return reject(sendError(error));
+        resolve(sendSuccess(undefined, data));
       });
-    },
-    validate: {
-      payload: Joi.object({
-        emailId: Joi.string().email().required(),
-        password: Joi.string().required().min(5).trim(),
-        deviceData: Joi.object({
-          deviceType: Joi.string().valid(...Object.values(Config.APP_CONSTANTS.DATABASE.DEVICE_TYPES)).required(),
-          deviceName: Joi.string().required(),
-          deviceUUID: Joi.string().required(),
-        }).label('deviceData')
-      }).label("Admin: Login"),
-      failAction: UniversalFunctions.failActionFunction
-    },
-    plugins: {
-      "hapi-swagger": {
-        responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
-};
+    });
+  }, validate: {
+    payload: Joi.object({
+      emailId: Joi.string().email().required(),
+      password: Joi.string().required().min(5).trim(),
+      deviceData: Joi.object({
+        deviceType: Joi.string().valid(...Object.values(Config.APP_CONSTANTS.DATABASE.DEVICE_TYPES)).required(),
+        deviceName: Joi.string().required(),
+        deviceUUID: Joi.string().required(),
+      }).label('deviceData')
+    }).label("Admin: Login"),
+    failAction: failActionFunction
+  },
+  auth: AuthType.ADMIN
+});
+
+
 
 const accessTokenLogin: Hapi.ServerRoute = {
   method: "POST",
@@ -52,8 +46,8 @@ const accessTokenLogin: Hapi.ServerRoute = {
       null;
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
-        if (err) return reject(UniversalFunctions.sendError(err));
-        resolve(UniversalFunctions.sendSuccess(undefined, data));
+        if (err) return reject(sendError(err));
+        resolve(sendSuccess(undefined, data));
       });
     });
   },
@@ -62,13 +56,13 @@ const accessTokenLogin: Hapi.ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -85,10 +79,10 @@ const createAdmin: Hapi.ServerRoute = {
       null;
     const payloadData: any = request.payload;
     return new Promise((resolve, reject) => {
-      if (!UniversalFunctions.verifyEmailFormat(payloadData.emailId)) {
+      if (!verifyEmailFormat(payloadData.emailId)) {
         reject(
-          UniversalFunctions.sendError(
-            UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR
+          sendError(
+            Config.APP_CONSTANTS.STATUS_MSG.ERROR
               .INVALID_EMAIL_FORMAT
           )
         );
@@ -98,8 +92,8 @@ const createAdmin: Hapi.ServerRoute = {
           userData,
           payloadData,
           (err: Error, data: any) => {
-            if (err) return reject(UniversalFunctions.sendError(err));
-            resolve(UniversalFunctions.sendSuccess(undefined, data));
+            if (err) return reject(sendError(err));
+            resolve(sendSuccess(undefined, data));
           }
         );
       }
@@ -116,13 +110,13 @@ const createAdmin: Hapi.ServerRoute = {
           .optional()
           .allow("")
       }).label("Admin: Create Admin"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -140,9 +134,9 @@ const getAdmin: Hapi.ServerRoute = {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.getAdmin(userData, (err: Error, data: any) => {
         if (!err) {
-          resolve(UniversalFunctions.sendSuccess(undefined, data));
+          resolve(sendSuccess(undefined, data));
         } else {
-          reject(UniversalFunctions.sendError(err));
+          reject(sendError(err));
         }
       });
     });
@@ -152,13 +146,13 @@ const getAdmin: Hapi.ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -179,8 +173,8 @@ const blockUnblockAdmin: Hapi.ServerRoute = {
         userData,
         payloadData,
         (err: Error, data: any) => {
-          if (err) return reject(UniversalFunctions.sendError(err));
-          resolve(UniversalFunctions.sendSuccess(undefined, data));
+          if (err) return reject(sendError(err));
+          resolve(sendSuccess(undefined, data));
         }
       );
     });
@@ -194,13 +188,13 @@ const blockUnblockAdmin: Hapi.ServerRoute = {
         adminId: Joi.string().required(),
         block: Joi.boolean().required()
       }).label("Admin: Block-Unblock Admin"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -216,10 +210,10 @@ const createUser: Hapi.ServerRoute = {
         request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      if (!UniversalFunctions.verifyEmailFormat((request.payload as any).emailId)) {
+      if (!verifyEmailFormat((request.payload as any).emailId)) {
         reject(
-          UniversalFunctions.sendError(
-            UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR
+          sendError(
+            Config.APP_CONSTANTS.STATUS_MSG.ERROR
               .INVALID_EMAIL_FORMAT
           )
         );
@@ -230,9 +224,9 @@ const createUser: Hapi.ServerRoute = {
           request.payload,
           (err: Error, data: any) => {
             if (!err) {
-              resolve(UniversalFunctions.sendSuccess(undefined, data));
+              resolve(sendSuccess(undefined, data));
             } else {
-              reject(UniversalFunctions.sendError(err));
+              reject(sendError(err));
             }
           }
         );
@@ -265,13 +259,13 @@ const createUser: Hapi.ServerRoute = {
           .required()
           .trim()
       }).label("Admin: Create User"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -289,9 +283,9 @@ const getUser: Hapi.ServerRoute = {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.getUser(userData, (err: Error, data: any) => {
         if (!err) {
-          resolve(UniversalFunctions.sendSuccess(undefined, data));
+          resolve(sendSuccess(undefined, data));
         } else {
-          reject(UniversalFunctions.sendError(err));
+          reject(sendError(err));
         }
       });
     });
@@ -301,13 +295,13 @@ const getUser: Hapi.ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -329,9 +323,9 @@ const blockUnblockUser: Hapi.ServerRoute = {
         payloadData,
         (err: Error, data: any) => {
           if (!err) {
-            resolve(UniversalFunctions.sendSuccess(undefined, data));
+            resolve(sendSuccess(undefined, data));
           } else {
-            reject(UniversalFunctions.sendError(err));
+            reject(sendError(err));
           }
         }
       );
@@ -346,13 +340,13 @@ const blockUnblockUser: Hapi.ServerRoute = {
         userId: Joi.string().required(),
         block: Joi.boolean().required()
       }).label("Admin: Block-Unblock User"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -374,14 +368,14 @@ const changePassword: Hapi.ServerRoute = {
         (err: Error, user: any) => {
           if (!err) {
             resolve(
-              UniversalFunctions.sendSuccess(
-                UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS
+              sendSuccess(
+                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .PASSWORD_RESET,
                 user
               )
             );
           } else {
-            reject(UniversalFunctions.sendError(err));
+            reject(sendError(err));
           }
         }
       );
@@ -397,13 +391,13 @@ const changePassword: Hapi.ServerRoute = {
         oldPassword: Joi.string().when('skip', { is: false, then: Joi.string().required().min(5), otherwise: Joi.string().optional().allow("") }),
         newPassword: Joi.string().when('skip', { is: false, then: Joi.string().required().min(5), otherwise: Joi.string().optional().allow("") })
       }).label("Admin: Change Password"),
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }
@@ -427,11 +421,11 @@ const logoutAdmin: Hapi.ServerRoute = {
           err: Error
         ) => {
           if (err) {
-            reject(UniversalFunctions.sendError(err));
+            reject(sendError(err));
           } else {
             resolve(
-              UniversalFunctions.sendSuccess(
-                UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.SUCCESS
+              sendSuccess(
+                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .LOGOUT, {}
               )
             );
@@ -440,13 +434,13 @@ const logoutAdmin: Hapi.ServerRoute = {
       });
     },
     validate: {
-      failAction: UniversalFunctions.failActionFunction
+      failAction: failActionFunction
     },
     plugins: {
       "hapi-swagger": {
         security: [{ 'admin': {} }],
         responseMessages:
-          UniversalFunctions.CONFIG.APP_CONSTANTS.swaggerDefaultResponseMessages
+          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
       }
     }
   }

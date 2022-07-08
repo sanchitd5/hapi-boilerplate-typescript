@@ -14,7 +14,7 @@ export const register = async function (server: Hapi.Server) {
         validate: async function (request, token, h) {
             let isValid = false;
             const credentials = await TokenManager.verifyToken(token)
-            if (converters.convertToObject(credentials) && credentials.userData) {
+            if (converters.toObject(credentials) && credentials.userData) {
                 isValid = true;
             }
             return { isValid, credentials };

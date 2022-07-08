@@ -1,11 +1,10 @@
 import Hapi from '@hapi/hapi';
-import UniversalFunctions from "../../utils/universalFunctions";
 import Joi from "joi";
 import Controller from "../../controllers";
-import { createRoute } from '../../utils';
+import { createRoute, sendError, sendSuccess } from '../../utils';
+import Config from '../../config'
 import { AuthType } from '../../definations';
 
-const Config = UniversalFunctions.CONFIG;
 
 const demoRoute = createRoute({
   method: "POST",
@@ -15,9 +14,9 @@ const demoRoute = createRoute({
   handler: (request) => {
     return new Promise((resolve, reject) => {
       Controller.DemoBaseController.demoFunction(request.payload, (err: Error, data: any) => {
-        if (err) return reject(UniversalFunctions.sendError(err));
+        if (err) return reject(sendError(err));
         resolve(
-          UniversalFunctions.sendSuccess(
+          sendSuccess(
             Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT,
             data
           )

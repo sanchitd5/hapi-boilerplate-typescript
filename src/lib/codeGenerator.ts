@@ -11,10 +11,12 @@
 */
 
 
-import UniversalFunctions from '../utils/universalFunctions';
 import Services from '../services/index';
 import async from 'async';
 import _ from 'lodash';
+import config from '../config';
+import converters from '../utils/converters';
+import { GenericObject } from '../definations';
 
 
 const generateRandomNumbers = (numberLength: number, excludeList: Array<number>) => {
@@ -56,15 +58,16 @@ const generateRandomNumbers = (numberLength: number, excludeList: Array<number>)
     }
 };
 
-export const generateUniqueCode = (noOfDigits: number, userRole: string, callback: Function) => {
+export const generateUniqueCode = (noOfDigits: number, userRole: string, callback: (err: Error | null | undefined, data: GenericObject | Array<GenericObject>) => void) => {
+    if (Services.UserService === undefined) throw Error("User management disabled");
     noOfDigits = noOfDigits || 5;
     let excludeArray: any[] = [];
     let generatedRandomCode: any;
     async.series([
-        (cb: Function) => {
+        (cb) => {
             //Push All generated codes in excludeAry
-            if (userRole == UniversalFunctions.CONFIG.APP_CONSTANTS.DATABASE.USER_ROLES.USER) {
-                Services.UserService.getRecord({ OTPCode: { $ne: null } }, { OTPCode: 1 }, { lean: true }, (err: any, data: any) => {
+            if (userRole == config.APP_CONSTANTS.DATABASE.USER_ROLES.USER) {
+                Services.UserService?.getRecord({ OTPCode: { $ne: null } }, { OTPCode: 1 }, { lean: true }, (err: any, data: any) => {
                     if (err) {
                         cb(err);
                     } else {
@@ -75,7 +78,7 @@ export const generateUniqueCode = (noOfDigits: number, userRole: string, callbac
                     }
                 })
             }
-            else cb(UniversalFunctions.CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR);
+            else cb(converters.convert(config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR, converters.toError));
         }, (cb) => {
             //Generate Random Code of digits specified
             generatedRandomCode = generateRandomNumbers(noOfDigits, excludeArray);

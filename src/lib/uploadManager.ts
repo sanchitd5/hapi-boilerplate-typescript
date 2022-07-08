@@ -9,13 +9,13 @@
 * - FATAL - ‘magenta’
 */
 import CONFIG from '../config';
-import UniversalFunctions from '../utils/universalFunctions';
+import { generateFilenameWithExtension } from '../utils';
 import async from 'async';
 import Path from 'path';
 import fs from 'fs-extra';
 import AWS from 'aws-sdk';
 import ffmpeg from 'fluent-ffmpeg';
-
+import * as gmParent from 'gm';
 ///*
 // 1) Save Local Files
 // 2) Create Thumbnails
@@ -43,7 +43,8 @@ const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null |
 }
 const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb: boolean, callback: Function) {
 
-    let path = file.path, filename = file.name, folder = file.s3Folder, mimeType = file.mimeType;
+    let path = file.path, filename = file.name, folder = file.s3Folder;
+    const mimeType = file.mimeType;
     if (isThumb) {
         path = path + 'thumb/';
         filename = file.thumbName;
@@ -163,7 +164,7 @@ const saveFile = function saveFile(fileData: any, path: string, callback: Functi
 };
 const createThumbnailImage = function createThumbnailImage(path: string, name: string, callback: Function) {
     uploadLogger.info('------first-----');
-    const gm = require('gm').subClass({ imageMagick: true });
+    const gm = gmParent.subClass({ imageMagick: true });
     const thumbPath = path + 'thumb/' + "Thumb_" + name;
     //var tmp_path = path + "-tmpPath"; //will be put into a temp directory
 
@@ -310,7 +311,7 @@ function uploadProfilePicture(profilePicture: any, folder: string, filename: str
         function (callback: Function) {
             const profileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const profileFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
-            const profilePictureName = UniversalFunctions.generateFilenameWithExtension(profilePicture.hapi.filename, "Profile_" + filename);
+            const profilePictureName = generateFilenameWithExtension(profilePicture.hapi.filename, "Profile_" + filename);
             const s3Folder = baseFolder + '/' + profileFolder;
             const s3FolderThumb = baseFolder + '/' + profileFolderThumb;
             const profileFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/profilePicture";
@@ -350,7 +351,7 @@ function uploadfileWithoutThumbnail(docFile: any, folder: string, filename: stri
         function (callback: Function) {
             const docFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             //var profileFolderThumb =CONFIG.awsS3Config.s3BucketCredentials.folder.thumb;
-            const docFileName = UniversalFunctions.generateFilenameWithExtension(docFile.hapi.filename, "Docs_" + filename);
+            const docFileName = generateFilenameWithExtension(docFile.hapi.filename, "Docs_" + filename);
             const s3Folder = baseFolder + '/' + docFileFolder;
             //var s3FolderThumb = baseFolder + '/' + profileFolderThumb;
             const docFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/docs";
@@ -391,7 +392,7 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
         function (callback: Function) {
             const videoFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const videoFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
-            const videoFileName = UniversalFunctions.generateFilenameWithExtension(videoFile.hapi.filename, "Video_" + filename);
+            const videoFileName = generateFilenameWithExtension(videoFile.hapi.filename, "Video_" + filename);
             const s3Folder = baseFolder + '/' + videoFileFolder;
             const s3FolderThumb = baseFolder + '/' + videoFolderThumb;
             const videoFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/video";
