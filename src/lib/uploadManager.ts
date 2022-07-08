@@ -1,13 +1,3 @@
-/**
-* Please use uploadLogger for logging in this file try to abstain from console
-* levels of logging:
-* - TRACE - ‘blue’
-* - DEBUG - ‘cyan’
-* - INFO - ‘green’
-* - WARN - ‘yellow’
-* - ERROR - ‘red’
-* - FATAL - ‘magenta’
-*/
 import CONFIG from '../config';
 import { generateFilenameWithExtension } from '../utils';
 import async from 'async';
@@ -18,13 +8,6 @@ import ffmpeg from 'fluent-ffmpeg';
 import * as gmParent from 'gm';
 import { GenericServiceCallback } from '../definations';
 import converters from '../utils/converters';
-///*
-// 1) Save Local Files
-// 2) Create Thumbnails
-// 3) Upload Files to S3
-// 4) Delete Local files
-// */
-//
 
 const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null | undefined) => void) => {
     fs.unlink(path, function (err) {

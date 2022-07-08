@@ -1,16 +1,6 @@
 import { Server } from '@hapi/hapi';
 import { Server as SocketServer, ServerOptions as SocketServerOptions } from "socket.io";
 import config from '../config';
-/**
-* Please use socketLogger for logging in this file try to abstain from console
-* levels of logging:
-* - TRACE - ‘blue’
-* - DEBUG - ‘cyan’
-* - INFO - ‘green’
-* - WARN - ‘yellow’
-* - ERROR - ‘red’
-* - FATAL - ‘magenta’
-*/
 
 type SocketEmitMessage = {
     message: {

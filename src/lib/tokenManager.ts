@@ -1,14 +1,3 @@
-/**
-* Please use tokenLogger for logging in this file try to abstain from console
-* levels of logging:
-* - TRACE - ‘blue’
-* - DEBUG - ‘cyan’
-* - INFO - ‘green’
-* - WARN - ‘yellow’
-* - ERROR - ‘red’
-* - FATAL - ‘magenta’
-*/
-
 import Services from "../services/index";
 import Config from "../config";
 import { DeviceData, GenericObject, TokenData, GenericServiceCallback } from "../definations";
