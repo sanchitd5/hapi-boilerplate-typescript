@@ -3,7 +3,7 @@ A Node based module to onboard user's into a very basic application, secured usi
 
 The Node.js app uses [Hapi Framework](https://hapijs.com) and [Hapi Swagger](https://github.com/glennjones/hapi-swagger)
 
-PS : This is an ES6 translation of this [project](https://github.com/ChoudharyNavit22/User-Onboarding-Module)
+PS : This is an Typescript rewrite based of this [project](https://github.com/ChoudharyNavit22/User-Onboarding-Module)
 
 # Contents
 
@@ -78,22 +78,22 @@ $ cp .env.example .env
 * Step4a: Start the application
 
 ```
-$ npm start
+$ pnpm start
 ```
 * Step4b: Start With Nodemon
 ```
-$ npm run startWithNodemon
+$ pnpm nodemon
 ```
 
 ## Build
 
 ```
-$ npm run build
+$ pnpm build
 ```
 
 ## Starting the build
 ```
-$ npm run deployment
+$ pnpm deployment
 ```
 
 The current version of your application would be running on **http://localhost:8000** or **http://IP_OF_SERVER:8000** (in case you are running on the server)
