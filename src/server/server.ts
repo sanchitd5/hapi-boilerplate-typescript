@@ -1,17 +1,17 @@
-import { Server as HapiServer } from '@hapi/hapi';
+import { Server as HapiServer } from "@hapi/hapi";
 import ServerHelper from "./helpers";
 import SocketManager from "../lib/socketManager";
 
 class Server {
   private declare socketManager: SocketManager;
   private declare server: HapiServer;
+  private receivedShutdownSignal = false;
 
   /**
    * @author Sanchit Dang
    * @description Initilize HAPI Server
    */
   private async initilize(): Promise<HapiServer> {
-
     await ServerHelper.ensureEnvironmentFileExists();
 
     //Create Server
@@ -19,7 +19,6 @@ class Server {
 
     //Register All Plugins
     this.server = await ServerHelper.registerPlugins(this.server);
-
 
     //Default Routes
     ServerHelper.setDefaultRoute(this.server);
@@ -46,12 +45,20 @@ class Server {
   }
 
   private async shutdownGracefully(server?: HapiServer, fatal = false) {
-    global.appLogger.info('Shutting down gracefully')
+    // force shutdown after waiting for 10 seconds
+    setTimeout(() => {
+      global.appLogger.warn("Waited for 10 seconds, forcing shutdown");
+      process.exit(fatal ? 0 : 1);
+    }, 10000);
+    this.receivedShutdownSignal = true;
+    
+    global.appLogger.info("Shutting down gracefully");
     if (server) {
       ServerHelper.removeListeners(server);
       await server.stop();
     }
     await ServerHelper.disconnectMongoDB();
+
     process.exit(fatal ? 0 : 1);
   }
 
@@ -66,17 +73,23 @@ class Server {
     // Global variable to get app root folder path
     ServerHelper.setGlobalAppRoot();
 
-    process.on("unhandledRejection", err => {
+    process.on("unhandledRejection", (err) => {
       global.appLogger.fatal(err);
-      this.shutdownGracefully(this.server, true);
+      this.shutdownGracefully(this.server, !!err);
     });
 
     await this.initilize();
 
-    process.on('SIGINT', () => this.shutdownGracefully(this.server));
-    process.on('SIGTERM', () => this.shutdownGracefully(this.server));
-  }
+    process.on(
+      "SIGINT",
+      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
+    );
 
+    process.on(
+      "SIGTERM",
+      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
+    );
+  }
 }
 
 export default Server;

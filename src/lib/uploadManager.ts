@@ -1,16 +1,16 @@
 import CONFIG from '../config';
 import { generateFilenameWithExtension } from '../utils';
-import async from 'async';
-import Path from 'path';
-import fs from 'fs-extra';
-import AWS from 'aws-sdk';
+import { parallel, waterfall } from 'async';
+import { resolve } from 'path';
+import { unlink, createWriteStream, copy, readFile} from 'fs-extra';
 import ffmpeg from 'fluent-ffmpeg';
+import * as AWS from 'aws-sdk';
 import * as gmParent from 'gm';
 import { GenericServiceCallback } from '../definations';
 import converters from '../utils/converters';
 
 const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null | undefined) => void) => {
-    fs.unlink(path, function (err) {
+    unlink(path, function (err) {
         uploadLogger.error("delete", err);
         if (err) {
             const error: any = {
@@ -43,7 +43,7 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
     };
     //<------ End of Configuration for ibm bucket -------------->
     uploadLogger.info("path to read::" + path + filename);
-    fs.readFile(path + filename, function (error, fileBuffer) {
+    readFile(path + filename, function (error, fileBuffer) {
         uploadLogger.info("path to read from temp::" + path + filename);
         if (error) {
             uploadLogger.error("UPLOAD", error, fileBuffer);
@@ -91,7 +91,7 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
 };
 
 function initParallelUpload(fileObj: any, withThumb: boolean, callbackParent: GenericServiceCallback) {
-    async.parallel([
+    parallel([
         (callback) => {
             uploadLogger.info("uploading image");
             uploadImageToS3Bucket(fileObj, false, callback as any);
@@ -114,7 +114,7 @@ function initParallelUpload(fileObj: any, withThumb: boolean, callbackParent: Ge
 }
 const saveFile = function saveFile(fileData: any, path: string, callback: GenericServiceCallback) {
 
-    const file = fs.createWriteStream(path);
+    const file = createWriteStream(path);
     uploadLogger.info("=========save file======");
     file.on('error', function (err) {
 
@@ -199,7 +199,7 @@ function uploadFile(otherConstants: any, fileDetails: any, createThumbnail: bool
     const s3Folder = otherConstants.s3Folder;
     const file = fileDetails.file;
     const mimiType = file.hapi.headers['content-type'];
-    async.waterfall([
+    waterfall([
         function (callback: GenericServiceCallback) {
             uploadLogger.info('TEMP_FOLDER + filename' + TEMP_FOLDER + filename)
             saveFile(file, TEMP_FOLDER + filename, callback);
@@ -243,7 +243,7 @@ function uploadVideoFile(otherConstants: any, fileDetails: any, createThumbnail:
     const file = fileDetails.file;
     const mimiType = file.hapi.headers['content-type'];
     let videoData: any;
-    async.waterfall([
+    waterfall([
         function (callback: GenericServiceCallback) {
             uploadLogger.info('TEMP_FOLDER + filename' + TEMP_FOLDER + filename)
             saveFile(file, TEMP_FOLDER + filename, callback);
@@ -292,7 +292,7 @@ function uploadProfilePicture(profilePicture: any, folder: string, filename: str
     const baseFolder = folder + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.profilePicture;
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
-    async.waterfall([
+    waterfall([
         function (callback: GenericServiceCallback) {
             const profileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const profileFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
@@ -300,7 +300,7 @@ function uploadProfilePicture(profilePicture: any, folder: string, filename: str
             const s3Folder = baseFolder + '/' + profileFolder;
             const s3FolderThumb = baseFolder + '/' + profileFolderThumb;
             const profileFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/profilePicture";
-            const path = Path.resolve("..") + "/uploads/" + profileFolderUploadPath + "/";
+            const path = resolve("..") + "/uploads/" + profileFolderUploadPath + "/";
             const fileDetails = {
                 file: profilePicture,
                 name: profilePictureName
@@ -332,7 +332,7 @@ const uploadfileWithoutThumbnail = (docFile: any, folder: string, filename: stri
     const baseFolder = folder + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.docs;
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
-    async.waterfall([
+    waterfall([
         (callback) => {
             const docFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             //var profileFolderThumb =CONFIG.awsS3Config.s3BucketCredentials.folder.thumb;
@@ -340,7 +340,7 @@ const uploadfileWithoutThumbnail = (docFile: any, folder: string, filename: stri
             const s3Folder = baseFolder + '/' + docFileFolder;
             //var s3FolderThumb = baseFolder + '/' + profileFolderThumb;
             const docFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/docs";
-            const path = Path.resolve("..") + "/uploads/" + docFolderUploadPath + "/";
+            const path = resolve("..") + "/uploads/" + docFolderUploadPath + "/";
             const fileDetails = {
                 file: docFile,
                 name: docFileName
@@ -373,7 +373,7 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
     const baseURL = "https://" + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint + '/' + CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket + '/' + baseFolder + '/';
     const urls: any = {};
     let fileDetails, otherConstants;
-    async.waterfall([
+    waterfall([
         (callback) => {
             const videoFileFolder = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.original;
             const videoFolderThumb = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.folder.thumb;
@@ -381,7 +381,7 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
             const s3Folder = baseFolder + '/' + videoFileFolder;
             const s3FolderThumb = baseFolder + '/' + videoFolderThumb;
             const videoFolderUploadPath = CONFIG.AWS_S3_CONFIG.s3BucketCredentials.projectFolder + "/video";
-            const path = Path.resolve("..") + "/uploads/" + videoFolderUploadPath + "/";
+            const path = resolve("..") + "/uploads/" + videoFolderUploadPath + "/";
             fileDetails = {
                 file: videoFile,
                 name: videoFileName
@@ -416,7 +416,7 @@ function uploadVideoWithThumbnail(videoFile: any, folder: string, filename: stri
 }
 
 function saveCSVFile(fileData: any, path: string, callback: GenericServiceCallback) {
-    fs.copy(fileData, path).then((data) => callback(null, data)).catch((e) => callback(e));
+    copy(fileData, path).then((data) => callback(null, data)).catch((e) => callback(e));
 }
 
 export default {

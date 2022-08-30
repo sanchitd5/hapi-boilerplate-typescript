@@ -1,5 +1,5 @@
-import Hapi from '@hapi/hapi';
-import Joi from "joi";
+import { ServerRoute } from '@hapi/hapi';
+import * as Joi from "joi";
 import Controller from "../../controllers";
 import { createRoute, sendError, sendSuccess } from '../../utils';
 import Config from '../../config'
@@ -31,5 +31,5 @@ const demoRoute = createRoute({
   }
 });
 
-const DemoBaseRoute: Hapi.ServerRoute[] = [demoRoute];
+const DemoBaseRoute: ServerRoute[] = [demoRoute];
 export default DemoBaseRoute;

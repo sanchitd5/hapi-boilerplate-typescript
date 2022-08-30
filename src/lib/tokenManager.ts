@@ -2,7 +2,7 @@ import Services from "../services/index";
 import Config from "../config";
 import { DeviceData, GenericObject, TokenData, GenericServiceCallback } from "../definations";
 import { countBy } from "lodash";
-import Jwt from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 
 /**
  * 
@@ -82,7 +82,7 @@ const setToken = function (tokenData: TokenData, deviceData: DeviceData, callbac
   if (!tokenData.id || !tokenData.type) {
     callback(Config.APP_CONSTANTS.STATUS_MSG.ERROR.IMP_ERROR,);
   } else {
-    const tokenToSend = Jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+    const tokenToSend = sign(tokenData, process.env.JWT_SECRET_KEY);
     setTokenInDB(tokenData.id, tokenData.type, { accessToken: tokenToSend, ...deviceData }, (
       err,
     ) => callback(err as Error, { accessToken: tokenToSend }));
@@ -91,7 +91,7 @@ const setToken = function (tokenData: TokenData, deviceData: DeviceData, callbac
 
 const verifyToken = async function (token: string): Promise<unknown | GenericObject> {
   try {
-    const decodedData = Jwt.verify(token, process.env.JWT_SECRET_KEY) as GenericObject;
+    const decodedData = verify(token, process.env.JWT_SECRET_KEY) as GenericObject;
     const result = await getTokenFromDB(
       decodedData.id,
       decodedData.type,
@@ -107,7 +107,7 @@ const verifyToken = async function (token: string): Promise<unknown | GenericObj
 
 const decodeToken = async (token: string) => {
   try {
-    const decodedData = await Jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const decodedData = verify(token, process.env.JWT_SECRET_KEY);
     return { userData: decodedData, token: token };
   } catch (err) {
     return err;

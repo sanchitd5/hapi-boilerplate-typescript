@@ -1,6 +1,6 @@
-import Hapi from '@hapi/hapi';
+import { ServerRoute } from '@hapi/hapi';
+import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
-import Joi from "joi";
 import Controller from "../../controllers";
 import Config from '../../config';
 
@@ -502,7 +502,7 @@ const resetPassword = {
   }
 };
 
-const userBaseRoutes: Hapi.ServerRoute[] = [
+const userBaseRoutes: ServerRoute[] = [
   userRegister,
   verifyOTP,
   login,

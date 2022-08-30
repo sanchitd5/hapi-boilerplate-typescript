@@ -1,8 +1,7 @@
 import Services from '../services/index';
-import async from 'async';
-import _ from 'lodash';
+import { series } from 'async';
+import { shuffle } from 'lodash';
 import config from '../config';
-import converters from '../utils/converters';
 import { GenericObject } from '../definations';
 
 
@@ -38,7 +37,7 @@ const generateRandomNumbers = (numberLength: number, excludeList: Array<number>)
             }
     }
     if (arrayList.length > 0) {
-        arrayList = _.shuffle(arrayList);
+        arrayList = shuffle(arrayList);
         return arrayList[0];
     } else {
         return false;
@@ -50,7 +49,7 @@ export const generateUniqueCode = (noOfDigits: number, userRole: string, callbac
     noOfDigits = noOfDigits || 5;
     let excludeArray: any[] = [];
     let generatedRandomCode: any;
-    async.series([
+    series([
         (cb) => {
             //Push All generated codes in excludeAry
             if (userRole === config.APP_CONSTANTS.DATABASE.USER_ROLES.USER) {

@@ -1,10 +1,10 @@
+import * as fs from 'fs-extra';
 import { GenericError } from "../definations";
 import CONFIG from "../config/index";
 import { connect as mongooseConnect, disconnect as mongooseDisconnect } from "mongoose";
 import { Sequelize } from 'sequelize';
 import { Server } from "@hapi/hapi";
 import { getLogger, configure as log4jsConfigure } from "log4js";
-import fs from 'fs-extra';
 import Routes from "../routes";
 import BootStrap from "../utils/bootStrap";
 import Plugins from './plugins';

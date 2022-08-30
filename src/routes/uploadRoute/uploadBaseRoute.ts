@@ -1,13 +1,12 @@
-import Hapi from '@hapi/hapi';
+import { ServerRoute } from "@hapi/hapi";
+import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction } from "../../utils";
-import Joi from "joi";
 import Controller from "../../controllers";
-import Config from '../../config';
+import Config from "../../config";
 
-const uploadImage: Hapi.ServerRoute =
-{
-  method: 'POST',
-  path: '/api/upload/uploadImage',
+const uploadImage: ServerRoute = {
+  method: "POST",
+  path: "/api/upload/uploadImage",
   handler: (request: any) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
@@ -15,42 +14,42 @@ const uploadImage: Hapi.ServerRoute =
         if (err) {
           reject(sendError(err));
         } else {
-          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+          resolve(
+            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+          );
         }
       });
     });
   },
   options: {
-    description: 'image upload',
-    tags: ['api', 'upload', 'image'],
+    description: "image upload",
+    tags: ["api", "upload", "image"],
     payload: {
       maxBytes: 20715200,
-      output: 'stream',
+      output: "stream",
       parse: true,
-      allow: 'multipart/form-data'
+      allow: "multipart/form-data",
     },
     validate: {
       payload: Joi.object({
         imageFile: Joi.any()
-          .meta({ swaggerType: 'file' })
+          .meta({ swaggerType: "file" })
           .required()
-          .description('image file')
+          .description("image file"),
       }).label("Upload: Image"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
-      'hapi-swagger': {
-        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
-}
+      "hapi-swagger": {
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
+};
 
-
-const uploadVideo: Hapi.ServerRoute =
-{
-  method: 'POST',
-  path: '/api/upload/uploadVideo',
+const uploadVideo: ServerRoute = {
+  method: "POST",
+  path: "/api/upload/uploadVideo",
   handler: (request) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
@@ -58,83 +57,85 @@ const uploadVideo: Hapi.ServerRoute =
         if (err) {
           reject(sendError(err));
         } else {
-          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+          resolve(
+            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+          );
         }
       });
     });
   },
   options: {
-    description: 'video upload',
-    tags: ['api', 'upload', 'video'],
+    description: "video upload",
+    tags: ["api", "upload", "video"],
     payload: {
       maxBytes: 207152000,
-      output: 'stream',
+      output: "stream",
       parse: true,
-      allow: 'multipart/form-data'
+      allow: "multipart/form-data",
     },
     validate: {
       payload: Joi.object({
         videoFile: Joi.any()
-          .meta({ swaggerType: 'file' })
+          .meta({ swaggerType: "file" })
           .required()
-          .description('video file')
+          .description("video file"),
       }).label("Upload: Video"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
-      'hapi-swagger': {
-        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
-}
+      "hapi-swagger": {
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
+};
 
-
-const uploadDocument: Hapi.ServerRoute =
-{
-  method: 'POST',
-  path: '/api/upload/uploadDocument',
+const uploadDocument: ServerRoute = {
+  method: "POST",
+  path: "/api/upload/uploadDocument",
   handler: (request) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
-      Controller.UploadBaseController.uploadDocument(payloadData, (err, data) => {
-        if (err) {
-          reject(sendError(err));
-        } else {
-          resolve(sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data))
+      Controller.UploadBaseController.uploadDocument(
+        payloadData,
+        (err, data) => {
+          if (err) {
+            reject(sendError(err));
+          } else {
+            resolve(
+              sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+            );
+          }
         }
-      });
+      );
     });
   },
   options: {
-    description: 'upload document',
-    tags: ['api', 'upload', 'document'],
+    description: "upload document",
+    tags: ["api", "upload", "document"],
     payload: {
       maxBytes: 20715200,
-      output: 'stream',
+      output: "stream",
       parse: true,
-      allow: 'multipart/form-data'
+      allow: "multipart/form-data",
     },
     validate: {
       payload: Joi.object({
         documentFile: Joi.any()
-          .meta({ swaggerType: 'file' })
+          .meta({ swaggerType: "file" })
           .required()
-          .description('document file')
+          .description("document file"),
       }).label("Upload: Document"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
-      'hapi-swagger': {
-        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+      "hapi-swagger": {
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
-const routes: Hapi.ServerRoute[] = [
-  uploadImage, uploadDocument, uploadVideo
-];
-
+const routes: ServerRoute[] = [uploadImage, uploadDocument, uploadVideo];
 
 export default routes;

@@ -1,12 +1,12 @@
-import Hapi from '@hapi/hapi';
+import { ServerRoute } from '@hapi/hapi';
+import * as Joi from "joi";
 import { createRoute, sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
-import Joi from "joi";
 import Controller from "../../controllers";
 import Config from '../../config';
 import { AuthType } from '../../definations';
 
 
-const adminLogin: Hapi.ServerRoute = createRoute({
+const adminLogin: ServerRoute = createRoute({
   method: "POST",
   path: "/api/admin/login",
   description: "Admin Login",
@@ -35,7 +35,7 @@ const adminLogin: Hapi.ServerRoute = createRoute({
 
 
 
-const accessTokenLogin: Hapi.ServerRoute = {
+const accessTokenLogin: ServerRoute = {
   method: "POST",
   path: "/api/admin/accessTokenLogin",
   handler: function (request, h) {
@@ -68,7 +68,7 @@ const accessTokenLogin: Hapi.ServerRoute = {
   }
 };
 
-const createAdmin: Hapi.ServerRoute = {
+const createAdmin: ServerRoute = {
   method: "POST",
   path: "/api/admin/createAdmin",
   handler: function (request, h) {
@@ -122,7 +122,7 @@ const createAdmin: Hapi.ServerRoute = {
   }
 };
 
-const getAdmin: Hapi.ServerRoute = {
+const getAdmin: ServerRoute = {
   method: "GET",
   path: "/api/admin/getAdmin",
   handler: function (request, h) {
@@ -158,7 +158,7 @@ const getAdmin: Hapi.ServerRoute = {
   }
 };
 
-const blockUnblockAdmin: Hapi.ServerRoute = {
+const blockUnblockAdmin: ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockAdmin",
   handler: function (request, h) {
@@ -200,7 +200,7 @@ const blockUnblockAdmin: Hapi.ServerRoute = {
   }
 };
 
-const createUser: Hapi.ServerRoute = {
+const createUser: ServerRoute = {
   method: "POST",
   path: "/api/admin/createUser",
   handler: function (request, h) {
@@ -271,7 +271,7 @@ const createUser: Hapi.ServerRoute = {
   }
 };
 
-const getUser: Hapi.ServerRoute = {
+const getUser: ServerRoute = {
   method: "GET",
   path: "/api/admin/getUser",
   handler: function (request, h) {
@@ -307,7 +307,7 @@ const getUser: Hapi.ServerRoute = {
   }
 };
 
-const blockUnblockUser: Hapi.ServerRoute = {
+const blockUnblockUser: ServerRoute = {
   method: "PUT",
   path: "/api/admin/blockUnblockUser",
   handler: function (request, h) {
@@ -352,7 +352,7 @@ const blockUnblockUser: Hapi.ServerRoute = {
   }
 };
 
-const changePassword: Hapi.ServerRoute = {
+const changePassword: ServerRoute = {
   method: "PUT",
   path: "/api/admin/changePassword",
   handler: function (request, h) {
@@ -403,7 +403,7 @@ const changePassword: Hapi.ServerRoute = {
   }
 };
 
-const logoutAdmin: Hapi.ServerRoute = {
+const logoutAdmin: ServerRoute = {
   method: "PUT",
   path: "/api/admin/logout",
   options: {
@@ -446,7 +446,7 @@ const logoutAdmin: Hapi.ServerRoute = {
   }
 };
 
-const adminBaseRoutes: Hapi.ServerRoute[] = [
+const adminBaseRoutes: ServerRoute[] = [
   adminLogin,
   accessTokenLogin,
   createAdmin,
