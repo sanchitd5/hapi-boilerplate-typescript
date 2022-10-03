@@ -22,7 +22,10 @@ const DATABASE: DatabaseConstants = {
   DEVICE_TYPES: {
     ANDROID: "ANDROID",
     IOS: "IOS",
-    WEB: "WEB"
+    WEB: "WEB",
+    WINDOWS: "WINDOWS",
+    LINUX: "LINUX",
+    MAC: "MAC"
   },
   USER_ROLES: {
     USER: "USER",

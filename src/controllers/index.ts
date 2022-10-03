@@ -1,22 +1,11 @@
 import DemoBaseController from "./demoController/demoBaseController";
 import UploadBaseController from "./uploadController/uploadBaseController";
-import config from "../config";
-import { DATABASE } from "../definations";
+import UserBaseController from "./userController/userBaseController";
+import AdminBaseController from "./adminController/adminBaseController"; 
 
 class Controllers {
-  declare UserBaseController?;
-  declare AdminBaseController?;
-  private async init() {
-    if (config.APP_CONFIG.userDatabase !== DATABASE.NONE) {
-      this.UserBaseController = await require('userController/userBaseController');
-    }
-    if (config.APP_CONFIG.adminDatabase !== DATABASE.NONE) {
-      this.AdminBaseController = await require('adminController/adminBaseController');
-    }
-  }
-  constructor() {
-    this.init();
-  }
+  UserBaseController = UserBaseController;
+  AdminBaseController = AdminBaseController;
   DemoBaseController = DemoBaseController;
   UploadBaseController = UploadBaseController;
 }

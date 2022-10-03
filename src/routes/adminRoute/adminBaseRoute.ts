@@ -9,13 +9,13 @@ import { AuthType } from '../../definations';
 const adminLogin: ServerRoute = createRoute({
   method: "POST",
   path: "/api/admin/login",
-  description: "Admin Login",
+  description: "Admin Login; UUID : 507e0a58-dee2-4f21-bbcb-dbf30f6a8f09",
   tags: ["api", "admin"],
   handler: (request) => {
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
         if (error) return reject(sendError(error));
-        resolve(sendSuccess(undefined, data));
+        resolve(sendSuccess('Success', data));
       });
     });
   }, validate: {
@@ -30,7 +30,7 @@ const adminLogin: ServerRoute = createRoute({
     }).label("Admin: Login"),
     failAction: failActionFunction
   },
-  auth: AuthType.ADMIN
+  auth: AuthType.NONE
 });
 
 

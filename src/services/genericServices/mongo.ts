@@ -53,6 +53,7 @@ export default class GenericMongoService extends GenericDBService {
         try {
             const result = await new this.model(data).save();
             if (!callback) return result;
+            else callback(null, result);
         } catch (error) {
             if (!callback) throw error;
         }
@@ -109,9 +110,6 @@ export default class GenericMongoService extends GenericDBService {
             }
         } catch (error) {
             if (!callback) throw error;
-            else {
-                callback(error as Error);
-            }
         }
     }
 

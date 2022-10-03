@@ -2,6 +2,9 @@ export interface DeviceTypes {
     readonly IOS: string;
     readonly ANDROID: string;
     readonly WEB: string;
+    readonly WINDOWS: string;
+    readonly LINUX: string;
+    readonly MAC: string;
 }
 
 export interface UserRoles {
