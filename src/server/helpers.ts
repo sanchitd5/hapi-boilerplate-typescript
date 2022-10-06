@@ -14,8 +14,8 @@ import Plugins from './plugins';
  */
 class ServerHelper {
   declare sequilizeInstance: Sequelize;
-  constructor() {
-    this.configureLog4js();
+  constructor(pid:number) {
+    this.configureLog4js(pid);
   }
 
   setGlobalAppRoot() {
@@ -45,7 +45,7 @@ class ServerHelper {
   attachLoggerOnEvents(server: Server) {
     server.events.on("response", (request: any) => {
       global.appLogger.info(
-        `${request.info.remoteAddress} : ${request.method.toUpperCase()} ${request.url.pathname} --> ${request.response.statusCode}`);
+        `PID : ${process.pid} - ${request.info.remoteAddress} : ${request.method.toUpperCase()} ${request.url.pathname} --> ${request.response.statusCode}`);
       global.appLogger.info("Request payload:", request.payload);
     });
   }
@@ -117,33 +117,32 @@ class ServerHelper {
     }
   }
 
-  configureLog4js = () => {
+  configureLog4js = (pid:number) => {
+    const loggers =['App', 'Upload_Manager', 'Socket_Manager','Token_Manager','Mongo_Manager','Postgres_Manager'];
+    const appenders ={};
+    loggers.forEach((logger)=>{
+      const name = "PID_"+ pid.toString() +"_"+logger;
+      Object.assign(appenders, {[name]:{ type: 'console' }});
+    });
     // Configuration for log4js.
     log4jsConfigure({
-      appenders: {
-        App: { type: 'console' },
-        Upload_Manager: { type: 'console' },
-        Socket_Manager: { type: 'console' },
-        Token_Manager: { type: 'console' },
-        Mongo_Manager: { type: 'console' },
-        Postgres_Manager: { type: 'console' },
-      },
+      appenders: appenders,
       categories: {
-        default: { appenders: ['App'], level: 'trace' },
-        Upload_Manager: { appenders: ['Upload_Manager'], level: 'trace' },
-        Socket_Manager: { appenders: ['Socket_Manager'], level: 'trace' },
-        Token_Manager: { appenders: ['Token_Manager'], level: 'trace' },
-        Mongo_Manager: { appenders: ['Mongo_Manager'], level: 'trace' },
-        Postgres_Manager: { appenders: ['Postgres_Manager'], level: 'trace' },
+        default: { appenders: [`PID_${pid}_`+ 'App'], level: 'trace' },
+        Upload_Manager: { appenders: [`PID_${pid}_`+'Upload_Manager'], level: 'trace' },
+        Socket_Manager: { appenders: [`PID_${pid}_`+'Socket_Manager'], level: 'trace' },
+        Token_Manager: { appenders: [`PID_${pid}_`+'Token_Manager'], level: 'trace' },
+        Mongo_Manager: { appenders: [`PID_${pid}_`+'Mongo_Manager'], level: 'trace' },
+        Postgres_Manager: { appenders: [`PID_${pid}_`+'Postgres_Manager'], level: 'trace' },
       }
     });
     // Global Logger variables for logging
-    global.appLogger = getLogger('App');
-    global.uploadLogger = getLogger('Upload_Manager');
-    global.socketLogger = getLogger('Socket_Manager');
-    global.tokenLogger = getLogger('Token_Manager');
-    global.mongoLogger = getLogger('Mongo_Manager');
-    global.postgresLogger = getLogger('Postgres_Manager');
+    global.appLogger = getLogger(`PID_${pid}_`+'App');
+    global.uploadLogger = getLogger(`PID_${pid}_`+'Upload_Manager');
+    global.socketLogger = getLogger(`PID_${pid}_`+'Socket_Manager');
+    global.tokenLogger = getLogger(`PID_${pid}_`+'Token_Manager');
+    global.mongoLogger = getLogger(`PID_${pid}_`+'Mongo_Manager');
+    global.postgresLogger = getLogger(`PID_${pid}_`+'Postgres_Manager');
   }
 
   /**
@@ -215,5 +214,5 @@ class ServerHelper {
   }
 }
 
-const instance = new ServerHelper();
+const instance = new ServerHelper(process.pid);
 export default instance;

@@ -110,7 +110,7 @@ const setToken = (
       tokenData.id,
       tokenData.type,
       { accessToken: tokenToSend, ...deviceData },
-      (err) => callback(err, { accessToken: tokenToSend })
+      (err) => callback(err as any, { accessToken: tokenToSend })
     );
   }
 };

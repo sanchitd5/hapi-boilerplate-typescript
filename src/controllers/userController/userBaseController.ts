@@ -8,8 +8,6 @@ class UserBaseController extends GenericController {
   constructor() {
     super();
     this.ERROR = this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
-    if (this.services.UserService === undefined)
-      throw Error("User management disabled");
   }
 
   private checkIfTokenValid = (

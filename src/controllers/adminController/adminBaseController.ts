@@ -9,21 +9,7 @@ class AdminBaseController extends GenericController {
   constructor() {
     super();
     this.ERROR = this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
-    if (this.services.AdminService === undefined) throw Error("Admin management disabled");
-    if (this.services.UserService === undefined) throw Error("User management disabled");
   }
-
-  private checkIfTokenValid = (data: any, callback: GenericServiceCallback) => {
-    if (!!data) {
-      callback(this.ERROR.INCORRECT_ACCESSTOKEN as any);
-      return false;
-    }
-    if (data.length == 0) {
-      callback(this.ERROR.INCORRECT_ACCESSTOKEN as any);
-      return false;
-    }
-    return true;
-  };
 
   adminLogin = (payload, callback) => {
     const emailId = payload.emailId;

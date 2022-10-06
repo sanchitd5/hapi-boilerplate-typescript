@@ -8,15 +8,17 @@ class AppConfig {
     declare userDatabase: DATABASE;
     declare adminDatabase: DATABASE;
     declare useSocket: boolean;
+    declare noOfClusters: number;
     constructor() {
         this.databases = {
-            mongo: false,
+            mongo: true,
             postgres: false,
             mysql: false
         };
-        this.userDatabase = DATABASE.NONE;
-        this.adminDatabase = DATABASE.NONE;
+        this.userDatabase = DATABASE.MONGODB;
+        this.adminDatabase = DATABASE.MONGODB;
         this.useSocket = false;
+        this.noOfClusters = 4;
     }
 }
 

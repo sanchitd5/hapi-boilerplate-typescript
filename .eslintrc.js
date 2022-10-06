@@ -3,6 +3,8 @@ module.exports = {
     parserOptions: {
         ecmaVersion: "latest", // Allows the use of modern ECMAScript features
         sourceType: "module", // Allows for the use of imports
+        tsconfigRootDir: __dirname,
+        project: 'tsconfig.json',
     },
     extends: ["plugin:@typescript-eslint/recommended"], // Uses the linting rules from @typescript-eslint/eslint-plugin
     env: {

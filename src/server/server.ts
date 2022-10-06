@@ -78,7 +78,7 @@ class Server {
       this.shutdownGracefully(this.server, !!err);
     });
 
-    await this.initilize();
+    const server = await this.initilize();
 
     process.on(
       "SIGINT",
@@ -87,6 +87,16 @@ class Server {
 
     process.on(
       "SIGTERM",
+      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
+    );
+
+    process.on(
+      "end",
+      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
+    );
+
+    server.listener.on(
+      "end",
       () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
     );
   }
