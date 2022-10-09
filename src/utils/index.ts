@@ -322,3 +322,9 @@ export const cleanObject = (
   if (callback instanceof Function) callback(newObj);
   return newObj;
 };
+
+export const throwIfNotRunningPnpm=()=>{
+  if(process.env.npm_execpath && !process.env.npm_execpath.includes('pnpm')) {
+    throw('Please use pnpm to run this project');
+  }
+}
