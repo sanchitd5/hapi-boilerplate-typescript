@@ -6,7 +6,7 @@ import Config from "../../config";
 
 const uploadImage: ServerRoute = {
   method: "POST",
-  path: "/api/upload/uploadImage",
+  path: "/api/upload/image",
   handler: (request: any) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ const uploadImage: ServerRoute = {
 
 const uploadVideo: ServerRoute = {
   method: "POST",
-  path: "/api/upload/uploadVideo",
+  path: "/api/upload/video",
   handler: (request) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
@@ -92,7 +92,7 @@ const uploadVideo: ServerRoute = {
 
 const uploadDocument: ServerRoute = {
   method: "POST",
-  path: "/api/upload/uploadDocument",
+  path: "/api/upload/document",
   handler: (request) => {
     const payloadData = request.payload;
     return new Promise((resolve, reject) => {
