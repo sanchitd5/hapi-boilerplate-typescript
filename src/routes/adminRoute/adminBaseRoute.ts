@@ -1,10 +1,15 @@
-import { ServerRoute } from '@hapi/hapi';
-import * as Joi from "joi";
-import { createRoute, sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
+import { ServerRoute } from "@hapi/hapi";
+import Joi from "joi";
+import {
+  createRoute,
+  sendError,
+  sendSuccess,
+  failActionFunction,
+  verifyEmailFormat,
+} from "../../utils";
 import Controller from "../../controllers";
-import Config from '../../config';
-import { AuthType } from '../../definations';
-
+import Config from "../../config";
+import { AuthType, DeviceData } from "../../definations";
 
 const adminLogin: ServerRoute = createRoute({
   method: "POST",
@@ -13,42 +18,53 @@ const adminLogin: ServerRoute = createRoute({
   tags: ["api", "admin"],
   handler: (request) => {
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.adminLogin(request.payload, (error: Error, data: any) => {
-        if (error) return reject(sendError(error));
-        resolve(sendSuccess('Success', data));
-      });
+      Controller.AdminBaseController.adminLogin(
+        request.payload as {
+          emailId: string;
+          password: string;
+          deviceData: DeviceData;
+        },
+        (error: unknown, data: any) => {
+          if (error) return reject(sendError(error));
+          resolve(sendSuccess("Success", data));
+        }
+      );
     });
-  }, validate: {
+  },
+  validate: {
     payload: Joi.object({
       emailId: Joi.string().email().required(),
       password: Joi.string().required().min(5).trim(),
       deviceData: Joi.object({
-        deviceType: Joi.string().valid(...Object.values(Config.APP_CONSTANTS.DATABASE.DEVICE_TYPES)).required(),
+        deviceType: Joi.string()
+          .valid(...Object.values(Config.APP_CONSTANTS.DATABASE.DEVICE_TYPES))
+          .required(),
         deviceName: Joi.string().required(),
         deviceUUID: Joi.string().required(),
-      }).label('deviceData')
+      }).label("deviceData"),
     }).label("Admin: Login"),
-    failAction: failActionFunction
+    failAction: failActionFunction,
   },
-  auth: AuthType.NONE
+  auth: AuthType.NONE,
 });
-
-
 
 const accessTokenLogin: ServerRoute = {
   method: "POST",
-  path: "/api/admin/accessTokenLogin",
-  handler: function (request, h) {
+  path: "/api/admin/login/accessToken",
+  handler: function (request) {
     const userData = request?.auth?.credentials?.userData || null;
     (request.auth &&
       request.auth.credentials &&
       request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.accessTokenLogin(userData, (err: Error, data: any) => {
-        if (err) return reject(sendError(err));
-        resolve(sendSuccess(undefined, data));
-      });
+      Controller.AdminBaseController.accessTokenLogin(
+        userData,
+        (err: Error, data: any) => {
+          if (err) return reject(sendError(err));
+          resolve(sendSuccess(undefined, data));
+        }
+      );
     });
   },
   options: {
@@ -56,21 +72,20 @@ const accessTokenLogin: ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const createAdmin: ServerRoute = {
   method: "POST",
-  path: "/api/admin/createAdmin",
+  path: "/api/admin/usermanagement/admin",
   handler: function (request, h) {
     const userData =
       (request.auth &&
@@ -81,13 +96,9 @@ const createAdmin: ServerRoute = {
     return new Promise((resolve, reject) => {
       if (!verifyEmailFormat(payloadData.emailId)) {
         reject(
-          sendError(
-            Config.APP_CONSTANTS.STATUS_MSG.ERROR
-              .INVALID_EMAIL_FORMAT
-          )
+          sendError(Config.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_EMAIL_FORMAT)
         );
-      }
-      else {
+      } else {
         Controller.AdminBaseController.createAdmin(
           userData,
           payloadData,
@@ -106,25 +117,22 @@ const createAdmin: ServerRoute = {
     validate: {
       payload: Joi.object({
         emailId: Joi.string().required(),
-        fullName: Joi.string()
-          .optional()
-          .allow("")
+        fullName: Joi.string().optional().allow(""),
       }).label("Admin: Create Admin"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const getAdmin: ServerRoute = {
   method: "GET",
-  path: "/api/admin/getAdmin",
+  path: "/api/admin/usermanagement/admin",
   handler: function (request, h) {
     const userData =
       (request.auth &&
@@ -132,13 +140,16 @@ const getAdmin: ServerRoute = {
         request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.getAdmin(userData, (err: Error, data: any) => {
-        if (!err) {
-          resolve(sendSuccess(undefined, data));
-        } else {
-          reject(sendError(err));
+      Controller.AdminBaseController.getAdmin(
+        userData,
+        (err: Error, data: any) => {
+          if (!err) {
+            resolve(sendSuccess(undefined, data));
+          } else {
+            reject(sendError(err));
+          }
         }
-      });
+      );
     });
   },
   options: {
@@ -146,32 +157,33 @@ const getAdmin: ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const blockUnblockAdmin: ServerRoute = {
   method: "PUT",
-  path: "/api/admin/blockUnblockAdmin",
+  path: "/api/admin/usermanagement/admin/{sid}/blockUnblock",
   handler: function (request, h) {
     const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
       null;
-    const payloadData = request.payload;
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.blockUnblockAdmin(
         userData,
-        payloadData,
+        {
+          sid: request.params.sid,
+          block: (request.payload as{block:boolean}).block,
+        },
         (err: Error, data: any) => {
           if (err) return reject(sendError(err));
           resolve(sendSuccess(undefined, data));
@@ -184,25 +196,26 @@ const blockUnblockAdmin: ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
+      params: Joi.object({
+        sid: Joi.string().required(),
+      }),
       payload: Joi.object({
-        adminId: Joi.string().required(),
-        block: Joi.boolean().required()
+        block: Joi.boolean().required(),
       }).label("Admin: Block-Unblock Admin"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const createUser: ServerRoute = {
   method: "POST",
-  path: "/api/admin/createUser",
+  path: "/api/admin/usermanagement/user",
   handler: function (request, h) {
     const userData =
       (request.auth &&
@@ -212,13 +225,9 @@ const createUser: ServerRoute = {
     return new Promise((resolve, reject) => {
       if (!verifyEmailFormat((request.payload as any).emailId)) {
         reject(
-          sendError(
-            Config.APP_CONSTANTS.STATUS_MSG.ERROR
-              .INVALID_EMAIL_FORMAT
-          )
+          sendError(Config.APP_CONSTANTS.STATUS_MSG.ERROR.INVALID_EMAIL_FORMAT)
         );
-      }
-      else {
+      } else {
         Controller.AdminBaseController.createUser(
           userData,
           request.payload,
@@ -254,26 +263,22 @@ const createUser: ServerRoute = {
           .regex(/^[0-9]+$/)
           .min(5)
           .required(),
-        countryCode: Joi.string()
-          .max(4)
-          .required()
-          .trim()
+        countryCode: Joi.string().max(4).required().trim(),
       }).label("Admin: Create User"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const getUser: ServerRoute = {
   method: "GET",
-  path: "/api/admin/getUser",
+  path: "/api/admin/usermanagement/user",
   handler: function (request, h) {
     const userData =
       (request.auth &&
@@ -281,13 +286,16 @@ const getUser: ServerRoute = {
         request.auth.credentials.userData) ||
       null;
     return new Promise((resolve, reject) => {
-      Controller.AdminBaseController.getUser(userData, (err: Error, data: any) => {
-        if (!err) {
-          resolve(sendSuccess(undefined, data));
-        } else {
-          reject(sendError(err));
+      Controller.AdminBaseController.getUser(
+        userData,
+        (err: Error, data: any) => {
+          if (!err) {
+            resolve(sendSuccess(undefined, data));
+          } else {
+            reject(sendError(err));
+          }
         }
-      });
+      );
     });
   },
   options: {
@@ -295,32 +303,30 @@ const getUser: ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const blockUnblockUser: ServerRoute = {
   method: "PUT",
-  path: "/api/admin/blockUnblockUser",
+  path: "/api/admin/usermanagement/user/{sid}/blockUnblock",
   handler: function (request, h) {
     const userData =
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
-      null;
-    const payloadData = request.payload;
+      null; 
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.blockUnblockUser(
         userData,
-        payloadData,
+        {userId:request.params.sid ,block: (request.payload as{block:boolean}).block},
         (err: Error, data: any) => {
           if (!err) {
             resolve(sendSuccess(undefined, data));
@@ -336,25 +342,26 @@ const blockUnblockUser: ServerRoute = {
     tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
+      params: Joi.object({
+        sid: Joi.string().required(),
+      }),
       payload: Joi.object({
-        userId: Joi.string().required(),
-        block: Joi.boolean().required()
+        block: Joi.boolean().required(),
       }).label("Admin: Block-Unblock User"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const changePassword: ServerRoute = {
   method: "PUT",
-  path: "/api/admin/changePassword",
+  path: "/api/admin/password",
   handler: function (request, h) {
     const userData =
       (request.auth &&
@@ -369,8 +376,7 @@ const changePassword: ServerRoute = {
           if (!err) {
             resolve(
               sendSuccess(
-                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
-                  .PASSWORD_RESET,
+                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.PASSWORD_RESET,
                 user
               )
             );
@@ -383,24 +389,31 @@ const changePassword: ServerRoute = {
   },
   options: {
     description: "change Password",
-    tags: ["api", "customer"],
+    tags: ["api", "admin"],
     auth: "UserAuth",
     validate: {
       payload: Joi.object({
         skip: Joi.boolean().required(),
-        oldPassword: Joi.string().when('skip', { is: false, then: Joi.string().required().min(5), otherwise: Joi.string().optional().allow("") }),
-        newPassword: Joi.string().when('skip', { is: false, then: Joi.string().required().min(5), otherwise: Joi.string().optional().allow("") })
+        oldPassword: Joi.string().when("skip", {
+          is: false,
+          then: Joi.string().required().min(5),
+          otherwise: Joi.string().optional().allow(""),
+        }),
+        newPassword: Joi.string().when("skip", {
+          is: false,
+          then: Joi.string().required().min(5),
+          otherwise: Joi.string().optional().allow(""),
+        }),
       }).label("Admin: Change Password"),
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const logoutAdmin: ServerRoute = {
@@ -417,33 +430,27 @@ const logoutAdmin: ServerRoute = {
           request.auth.credentials.userData) ||
         null;
       return new Promise((resolve, reject) => {
-        Controller.AdminBaseController.logoutAdmin(userData, (
-          err: Error
-        ) => {
+        Controller.AdminBaseController.logoutAdmin(userData, (err: Error) => {
           if (err) {
             reject(sendError(err));
           } else {
             resolve(
-              sendSuccess(
-                Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
-                  .LOGOUT, {}
-              )
+              sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.LOGOUT, {})
             );
           }
         });
       });
     },
     validate: {
-      failAction: failActionFunction
+      failAction: failActionFunction,
     },
     plugins: {
       "hapi-swagger": {
-        security: [{ 'admin': {} }],
-        responseMessages:
-          Config.APP_CONSTANTS.swaggerDefaultResponseMessages
-      }
-    }
-  }
+        security: [{ admin: {} }],
+        responseMessages: Config.APP_CONSTANTS.swaggerDefaultResponseMessages,
+      },
+    },
+  },
 };
 
 const adminBaseRoutes: ServerRoute[] = [
@@ -456,7 +463,7 @@ const adminBaseRoutes: ServerRoute[] = [
   getUser,
   blockUnblockUser,
   changePassword,
-  logoutAdmin
+  logoutAdmin,
 ];
 
 export default adminBaseRoutes;
