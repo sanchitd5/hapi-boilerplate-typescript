@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          path: '/app'
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
@@ -25,4 +26,6 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: /app/
       - run: ls -la .
