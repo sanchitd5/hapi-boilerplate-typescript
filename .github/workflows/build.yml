@@ -19,9 +19,9 @@ jobs:
       - run: npm i -g pnpm
       - run: pnpm i
       - name: SonarQube Scan
-        uses: kitabisa/sonarqube-action@master
-        args: -X
+        uses: kitabisa/sonarqube-action@master 
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           login: ${{ secrets.SONAR_TOKEN }}
+          args: -X
       - run: ls -la .
