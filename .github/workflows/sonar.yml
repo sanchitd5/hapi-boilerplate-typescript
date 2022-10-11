@@ -1,5 +1,5 @@
 
-name: Push on Master
+name: Analyse
 on:
   push:
     branches:
