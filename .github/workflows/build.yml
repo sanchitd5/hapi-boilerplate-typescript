@@ -24,4 +24,9 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.verbose=true 
+            -Dsonar.verbose=true
       - run: ls -la .
