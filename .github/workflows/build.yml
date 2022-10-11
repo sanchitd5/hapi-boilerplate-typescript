@@ -11,6 +11,10 @@ jobs:
     steps:
       - run: pwd
       - run: ls -la .
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org" 
       - run: npm i -g pnpm
       - run: pnpm i
       - run: pwd
