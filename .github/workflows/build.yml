@@ -15,15 +15,11 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "18"
-          registry-url: "https://registry.npmjs.org"
-      - run: ls /home/runner/_work/_temp
+          registry-url: "https://registry.npmjs.org" 
       - run: npm i -g pnpm
       - run: pnpm i
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v1.1.0
-        with:
-          args: >
-           -Dproject.home=/home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
