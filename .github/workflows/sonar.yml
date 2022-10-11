@@ -21,12 +21,16 @@ jobs:
         with:
           args: >
             -Dsonar.verbose=true
-            -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
+            -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g
             -Dsonar.sources=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       - uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          args: >
+            -Dsonar.verbose=true
+            -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
