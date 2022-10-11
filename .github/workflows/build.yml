@@ -26,6 +26,5 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectKey: sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w3
           projectBaseDir: /github/workspace
       - run: ls -la .
