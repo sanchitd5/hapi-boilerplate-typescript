@@ -25,5 +25,5 @@ jobs:
           host: ${{ secrets.SONAR_HOST_URL }}
           login: ${{ secrets.SONAR_TOKEN }}
 
-          args: -X sonar.organization=sanchitd5 sonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w
+          args: -X sonar.organization=sanchitd5 sonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w sonar.scm.provider=git && ls -la /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
       - run: ls -la .
