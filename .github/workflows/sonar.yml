@@ -22,9 +22,10 @@ jobs:
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
-          projectBaseDir: /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
+          projectBaseDir: .
           args: >
             -X 
+            -Dsonar.projectBaseDir=.
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g 
             -Dsonar.organisation=sanchitd5 
             -Dsonar.sources=src/
