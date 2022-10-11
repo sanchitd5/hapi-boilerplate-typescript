@@ -23,5 +23,5 @@ jobs:
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           login: ${{ secrets.SONAR_TOKEN }}
-          args: -X
+          args: -X sonar.scm.provider=git
       - run: ls -la .
