@@ -25,9 +25,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -v "/home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript":"/github/workspace/code"
             -Dsonar.verbose=true 
             -Dsonar.scm.provider=git
-            -Dsonar.projectBaseDir=/github/workspace/code
+            -Dsonar.projectBaseDir=/github/workspace/
             -Dsonar.sources=./src
       - run: ls -la .
