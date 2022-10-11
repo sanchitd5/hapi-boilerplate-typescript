@@ -21,18 +21,12 @@ jobs:
           args: >
             -Dsonar.verbose=true
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
-            -Dsonar.sources=.
-            -Dsonar.projectBaseDir=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       - name: SonarQube Quality Gate check
         id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
-        with:
-          args: >
-            -Dsonar.verbose=true
-            -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
         # Force to fail step after specific time.
         timeout-minutes: 5
         env:
