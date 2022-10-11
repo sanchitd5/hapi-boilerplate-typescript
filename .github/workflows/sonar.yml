@@ -22,6 +22,7 @@ jobs:
             -Dsonar.verbose=true
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
             -Dsonar.sources=.
+            -Dsonar.projectBaseDir=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -33,6 +34,7 @@ jobs:
             -Dsonar.verbose=true
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
             -Dsonar.sources=.
+            -Dsonar.projectBaseDir=.
         # Force to fail step after specific time.
         timeout-minutes: 5
         env:
