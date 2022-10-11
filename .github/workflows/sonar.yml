@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
-      - run: echo pwd
+      - run: pwd
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
