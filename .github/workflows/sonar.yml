@@ -15,17 +15,17 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "16"
-          registry-url: "https://registry.npmjs.org"
+          registry-url: "https://registry.npmjs.org"∂
       - name: copy for analysys
         run: ls -la .
         # run:  cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
-          projectBaseDir: .
+          projectBaseDir: ../../hapi-boilerplate-typescript/hapi-boilerplate-typescript
           args: >
             -X 
-            -Dsonar.projectBaseDir=.
+            -Dsonar.projectBaseDir=../../hapi-boilerplate-typescript/hapi-boilerplate-typescript
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g 
             -Dsonar.organisation=sanchitd5 
             -Dsonar.sources=src/
