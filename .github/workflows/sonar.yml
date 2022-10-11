@@ -16,7 +16,8 @@ jobs:
         with:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
-      - run: ls /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
+      - name: copy for analysys
+        run:  cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
@@ -25,8 +26,7 @@ jobs:
             -X 
             -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g 
             -Dsonar.organisation=sanchitd5 
-            -Dsonar.sources=/home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/src 
-            -Dproject.settings=/home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/sonar-project.properties
+            -Dsonar.sources=src/
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
