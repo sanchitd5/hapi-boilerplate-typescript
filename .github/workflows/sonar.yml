@@ -15,7 +15,12 @@ jobs:
         with:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
-      - uses: sonarsource/sonarqube-scan-action@master
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        args: >
+          -Dsonar.verbose=true
+          -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPEY3lz295Efb3LHZwL
+          -Dsonar.sources=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
