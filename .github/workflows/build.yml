@@ -20,8 +20,8 @@ jobs:
       - run: npm i -g typescript
       - run: pnpm i
       - name: SonarQube Scan
-        uses: kitabisa/sonarqube-action@v1.2.0
+        uses: vtex/action-sonarqube@main
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
-          login: ${{ secrets.SONAR_TOKEN }}
+          token: ${{ secrets.SONAR_TOKEN }}
       - run: ls -la .
