@@ -17,12 +17,14 @@ jobs:
           node-version: "18"
           registry-url: "https://registry.npmjs.org" 
       - run: npm i -g pnpm
-      - run: npm i -g typescript
       - run: pnpm i
+      - run: pwd
+      - run: ls .
       - name: SonarQube Scan
         uses: vtex/action-sonarqube@main
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           token: ${{ secrets.SONAR_TOKEN }}
-          projectKey: sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w
+          projectKey: sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w3
+          projectBaseDir: /github/workspace
       - run: ls -la .
