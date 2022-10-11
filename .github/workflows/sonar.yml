@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "16"
-          registry-url: "https://registry.npmjs.org"∂
+          registry-url: "https://registry.npmjs.org"
       - name: copy for analysys
         run: ls -la .
         # run:  cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
