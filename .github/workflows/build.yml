@@ -20,10 +20,8 @@ jobs:
       - run: npm i -g typescript
       - run: pnpm i
       - name: SonarQube Scan
-        uses: kitabisa/sonarqube-action@master 
+        uses: kitabisa/sonarqube-action@v1.2.0
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           login: ${{ secrets.SONAR_TOKEN }}
-
-          args: -X sonar.organization=sanchitd5 sonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w sonar.scm.provider=git && ls -la /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
       - run: ls -la .
