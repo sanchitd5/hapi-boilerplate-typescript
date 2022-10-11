@@ -24,4 +24,5 @@ jobs:
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           token: ${{ secrets.SONAR_TOKEN }}
+          projectKey: sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w
       - run: ls -la .
