@@ -14,19 +14,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "18"
           registry-url: "https://registry.npmjs.org"
-      - run: ls /github/workspace
-      - run: cp -a /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/. /github/workspace/
-      - run: ls /github/workspace
+      - run: npm i -g pnpm
+      - run: pnpm i
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
-        with:
-          args: >
-            -X 
-            -Dsonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPE3lLVd7Cbccqte0_g 
-            -Dsonar.organisation=sanchitd5 
-            -Dsonar.sources=src/
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
