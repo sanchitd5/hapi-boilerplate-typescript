@@ -18,14 +18,13 @@ jobs:
       - run: npm i -g pnpm
       - run: pnpm i
       - run: pwd
-      - run: cp sonar-project.properties /opt/sonar-scanner/sonar-project.properties
+      - run: cp -a sonar-project.properties /opt/sonar-scanner/sonar-project.properties
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v1.1.0
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: /opt/sonar-scanner/
           args: >
             -Dsonar.verbose=true 
             -Dsonar.verbose=true
