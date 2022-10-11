@@ -26,7 +26,6 @@ jobs:
         with:
           args: >
             -Dsonar.verbose=true 
-            -Dsonar.scm.provider=git
-            -Dsonar.projectBaseDir=/github/workspace/
-            -Dsonar.sources=./src
+            -Dproject.settings=/github/workspace/sonar-project.properties
+            -Dsonar.sources=/github/workspace/src
       - run: ls -la .
