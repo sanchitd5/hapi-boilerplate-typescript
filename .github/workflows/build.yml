@@ -21,10 +21,11 @@ jobs:
       - run: pwd
       - run: ls .
       - name: SonarQube Scan
-        uses: vtex/action-sonarqube@main
+        uses: sonarsource/sonarqube-scan-action@v1.1.0
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          host: ${{ secrets.SONAR_HOST_URL }}
-          token: ${{ secrets.SONAR_TOKEN }}
           projectKey: sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w3
           projectBaseDir: /github/workspace
       - run: ls -la .
