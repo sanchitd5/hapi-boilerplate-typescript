@@ -19,7 +19,7 @@ jobs:
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
-          projectBaseDir: app
+          projectBaseDir: .
           args: >
             -X
         env:
