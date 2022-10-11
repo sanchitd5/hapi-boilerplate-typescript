@@ -16,10 +16,9 @@ jobs:
         with:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
-      - name: copy for analysys
-        run: mkdir /github
-        run: mkdir /github/workspace
-        run: cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
+      - run: mkdir /github
+      - run: mkdir /github/workspace
+      - run: cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
