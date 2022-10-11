@@ -17,7 +17,7 @@ jobs:
           node-version: "16"
           registry-url: "https://registry.npmjs.org"
       - name: copy for analysys
-        run: ls
+        run: ls -la .
         # run:  cp /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/* /github/workspace/*
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
@@ -31,4 +31,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      - run: ls
+      - run: ls -la .
