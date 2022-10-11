@@ -17,11 +17,12 @@ jobs:
           node-version: "18"
           registry-url: "https://registry.npmjs.org" 
       - run: npm i -g pnpm
+      - run: npm i -g typescript
       - run: pnpm i
       - name: SonarQube Scan
         uses: kitabisa/sonarqube-action@master 
         with:
           host: ${{ secrets.SONAR_HOST_URL }}
           login: ${{ secrets.SONAR_TOKEN }}
-          args: -X sonar.scm.provider=git
+          args: -X sonar.organization=sanchitd5 sonar.projectKey=sanchitd5_hapi-boilerplate-typescript_AYPGATiRmXHgA3DqZG0w
       - run: ls -la .
