@@ -9,9 +9,10 @@ jobs:
     name: Build
     runs-on: self-hosted
     steps:
+      - run: pwd
+      - run: ls -la .
       - uses: actions/checkout@v3
         with:
-          path: '/app'
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
