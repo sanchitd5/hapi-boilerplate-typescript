@@ -20,9 +20,10 @@ jobs:
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         with:
-          projectBaseDir: /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript
+          projectBaseDir: /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/
           args: >
             -X
+            -Dproject.settings=/home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/sonar-project.properties
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
