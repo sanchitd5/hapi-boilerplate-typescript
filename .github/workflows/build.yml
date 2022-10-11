@@ -19,7 +19,7 @@ jobs:
       - run: ls /home/runner/_work/_temp
       - run: npm i -g pnpm
       - run: pnpm i
-      - run: cp -a /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript. /home/runner/_work/_temp/
+      - run: cp -a /home/runner/_work/hapi-boilerplate-typescript/hapi-boilerplate-typescript/. /home/runner/_work/_temp/
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v1.1.0
         env:
