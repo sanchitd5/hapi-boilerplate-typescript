@@ -10,22 +10,6 @@ class UserBaseController extends GenericController {
     this.ERROR = this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
   }
 
-  private checkIfTokenValid = (
-    data: Array<unknown> | unknown,
-    callback:
-      | GenericServiceCallback
-      | ((err?: Error | null | undefined, result?: unknown) => void)
-  ) => {
-    if (!!data) {
-      callback(this.ERROR.INCORRECT_ACCESSTOKEN as unknown as Error);
-      return false;
-    }
-    if ((data as Array<unknown>).length == 0) {
-      callback(this.ERROR.INCORRECT_ACCESSTOKEN as unknown as Error);
-      return false;
-    }
-    return true;
-  };
 
   createUser = (
     payloadData: GenericObject,
@@ -201,9 +185,7 @@ class UserBaseController extends GenericController {
             {},
             options,
             (err, data) => {
-              if (err) return cb(err as Error);
-              if (!this.checkIfTokenValid(data, cb as GenericServiceCallback))
-                return;
+              if (err) return cb(err as Error); 
               if (this.convert.toObjectArray(data)) customerData = data[0];
               cb();
             }
@@ -402,7 +384,6 @@ class UserBaseController extends GenericController {
             options,
             (err, data) => {
               if (err) return cb(err as Error);
-              if (!this.checkIfTokenValid(data, cb)) return;
               if (this.convert.toObject(data)) {
                 customerData = data[0] || null;
                 if (customerData.emailVerified == true)
@@ -477,7 +458,6 @@ class UserBaseController extends GenericController {
             {},
             (err, data) => {
               if (err) return cb(err);
-              if (!this.checkIfTokenValid(data, cb)) return;
               userFound = data && data[0];
               if (userFound.isBlocked)
                 return cb(this.ERROR.ACCOUNT_BLOCKED as any);
