@@ -1,4 +1,4 @@
-# Node 18 User Onboarding application (Typescript)
+# Node 18 User Onboarding application (Typescript) [![Build Status](https://github.com/sanchitd5/hapi-boilerplate-typescript/actions/workflows/sonar.yml/badge.svg)](https://github.com/sanchitd5/hapi-boilerplate-typescript/actions/workflows/sonar.yml)
 A Node based module to onboard user's into a very basic application, secured using JWT authorization.
 
 The Node.js app uses [Hapi Framework](https://hapijs.com) and [Hapi Swagger](https://github.com/glennjones/hapi-swagger)
