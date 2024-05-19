@@ -36,14 +36,11 @@ export default class GenericSQLService extends GenericDBService {
         }
     }
 
-    async getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
+    async getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject) {
         try {
-            const result = await this.model.findAll(criteria);
-            if (callback) callback(null, result);
-            return result;
+            return this.model.findAll(criteria);
         } catch (error) {
-            if (callback) callback(error as Error);
-            else throw error;
+            throw error;
         }
     }
 

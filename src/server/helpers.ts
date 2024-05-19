@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { GenericError } from "../definations";
 import CONFIG from "../config/index";
-import { connect as mongooseConnect, disconnect as mongooseDisconnect } from "mongoose";
+import { connect as mongooseConnect, disconnect as mongooseDisconnect, set as mongooseSet } from "mongoose";
 import { Sequelize } from 'sequelize';
 import { Server } from "@hapi/hapi";
 import { getLogger, configure as log4jsConfigure } from "log4js";
@@ -9,12 +9,13 @@ import Routes from "../routes";
 import BootStrap from "../utils/bootStrap";
 import Plugins from './plugins';
 
+
 /**
  * @description Helper file for the server
  */
 class ServerHelper {
   declare sequilizeInstance: Sequelize;
-  constructor(pid:number) {
+  constructor(pid: number) {
     this.configureLog4js(pid);
   }
 
@@ -75,10 +76,9 @@ class ServerHelper {
    * @param {Server} server 
    */
   async addViews(server: Server) {
-    const handlebars = await import('handlebars')
-    server.views({
+    (server as any).views({
       engines: {
-        html: handlebars
+        html: await import('handlebars')
       },
       relativeTo: __dirname,
       path: "../../views"
@@ -117,32 +117,32 @@ class ServerHelper {
     }
   }
 
-  configureLog4js = (pid:number) => {
-    const loggers =['App', 'Upload_Manager', 'Socket_Manager','Token_Manager','Mongo_Manager','Postgres_Manager'];
-    const appenders ={};
-    loggers.forEach((logger)=>{
-      const name = "PID_"+ pid.toString() +"_"+logger;
-      Object.assign(appenders, {[name]:{ type: 'console' }});
+  configureLog4js = (pid: number) => {
+    const loggers = ['App', 'Upload_Manager', 'Socket_Manager', 'Token_Manager', 'Mongo_Manager', 'Postgres_Manager'];
+    const appenders = {};
+    loggers.forEach((logger) => {
+      const name = "PID_" + pid.toString() + "_" + logger;
+      Object.assign(appenders, { [name]: { type: 'console' } });
     });
     // Configuration for log4js.
     log4jsConfigure({
       appenders: appenders,
       categories: {
-        default: { appenders: [`PID_${pid}_`+ 'App'], level: 'trace' },
-        Upload_Manager: { appenders: [`PID_${pid}_`+'Upload_Manager'], level: 'trace' },
-        Socket_Manager: { appenders: [`PID_${pid}_`+'Socket_Manager'], level: 'trace' },
-        Token_Manager: { appenders: [`PID_${pid}_`+'Token_Manager'], level: 'trace' },
-        Mongo_Manager: { appenders: [`PID_${pid}_`+'Mongo_Manager'], level: 'trace' },
-        Postgres_Manager: { appenders: [`PID_${pid}_`+'Postgres_Manager'], level: 'trace' },
+        default: { appenders: [`PID_${pid}_` + 'App'], level: 'trace' },
+        Upload_Manager: { appenders: [`PID_${pid}_` + 'Upload_Manager'], level: 'trace' },
+        Socket_Manager: { appenders: [`PID_${pid}_` + 'Socket_Manager'], level: 'trace' },
+        Token_Manager: { appenders: [`PID_${pid}_` + 'Token_Manager'], level: 'trace' },
+        Mongo_Manager: { appenders: [`PID_${pid}_` + 'Mongo_Manager'], level: 'trace' },
+        Postgres_Manager: { appenders: [`PID_${pid}_` + 'Postgres_Manager'], level: 'trace' },
       }
     });
     // Global Logger variables for logging
-    global.appLogger = getLogger(`PID_${pid}_`+'App');
-    global.uploadLogger = getLogger(`PID_${pid}_`+'Upload_Manager');
-    global.socketLogger = getLogger(`PID_${pid}_`+'Socket_Manager');
-    global.tokenLogger = getLogger(`PID_${pid}_`+'Token_Manager');
-    global.mongoLogger = getLogger(`PID_${pid}_`+'Mongo_Manager');
-    global.postgresLogger = getLogger(`PID_${pid}_`+'Postgres_Manager');
+    global.appLogger = getLogger(`PID_${pid}_` + 'App');
+    global.uploadLogger = getLogger(`PID_${pid}_` + 'Upload_Manager');
+    global.socketLogger = getLogger(`PID_${pid}_` + 'Socket_Manager');
+    global.tokenLogger = getLogger(`PID_${pid}_` + 'Token_Manager');
+    global.mongoLogger = getLogger(`PID_${pid}_` + 'Mongo_Manager');
+    global.postgresLogger = getLogger(`PID_${pid}_` + 'Postgres_Manager');
   }
 
   /**
@@ -160,10 +160,20 @@ class ServerHelper {
   }
 
   async connectMongoDB() {
+
     if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Connect : Disabled');
+    let connectionTimeout: NodeJS.Timeout;
+
     try {
       global.mongoLogger.debug('Trying to make connection to DB');
-      const mongoose = await mongooseConnect(CONFIG.DB_CONFIG.mongo.URI);
+      mongooseSet('strictQuery', true);
+      connectionTimeout = setTimeout(() => {
+        throw new GenericError('MONGODB_CONNECT_TIMEOUT', new Error('MongoDB Connection Timeout'));
+      }, 6000);
+      const mongoose = await mongooseConnect(CONFIG.DB_CONFIG.mongo.URI, {
+        connectTimeoutMS: 5000, // 5 seconds
+      });
+      clearTimeout(connectionTimeout);
       global.mongoLogger.info('MongoDB Connected');
       return mongoose;
     } catch (e: any) {

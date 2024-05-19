@@ -9,7 +9,7 @@ class Services {
   declare AdminService?: GenericMongoService | GenericSQLService;
   constructor() {
     console.info('Initializing services');
-    console.debug('User :' + config.APP_CONFIG.userDatabase);
+    console.debug('User :' + DATABASE[config.APP_CONFIG.userDatabase]);
     switch (config.APP_CONFIG.userDatabase) {
       case DATABASE.MONGODB:
         throwIfMongoDisabled();
@@ -25,7 +25,7 @@ class Services {
       default:
       // none
     }
-    console.debug('Admin :' + config.APP_CONFIG.adminDatabase);
+    console.debug('Admin :' + DATABASE[config.APP_CONFIG.adminDatabase]);
     switch (config.APP_CONFIG.adminDatabase) {
       case DATABASE.MONGODB:
         this.AdminService = new GenericMongoService('Admin');

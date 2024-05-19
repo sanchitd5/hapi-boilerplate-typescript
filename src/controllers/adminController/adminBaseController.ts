@@ -19,14 +19,14 @@ class AdminBaseController extends GenericController {
     let successLogin = false;
     this.async.series(
       [
-        (cb) => {
-          this.services.AdminService?.getRecord({ emailId: emailId }, {}, {}, (err, result) => {
-            if (err) cb(err);
-            else {
-              userFound = (result && result[0]) || null;
-              cb(null, result);
-            }
-          });
+        async (cb) => {
+          try {
+            const result = await this.services.AdminService?.getRecord({ emailId: emailId }, {}, {},);
+            userFound = (result && result[0]) || null;
+            cb(null, result);
+          } catch (e: any) {
+            cb(e);
+          }
         },
         (cb) => {
           //validations
@@ -43,12 +43,15 @@ class AdminBaseController extends GenericController {
             }
           }
         },
-        (cb) => {
-          this.services.AdminService?.getRecord({ emailId: emailId }, { password: 0 }, {}, (err, result) => {
-            if (err) return cb(err);
+        async (cb) => {
+          try {
+            const result = await this.services.AdminService?.getRecord({ emailId: emailId }, { password: 0 }, {});
             userFound = (result && result[0]) || null;
             cb();
-          });
+          } catch (e: any) {
+            cb(e)
+          }
+
         },
         (cb) => {
           if (successLogin) {
@@ -88,13 +91,15 @@ class AdminBaseController extends GenericController {
     const userData = payload;
     this.async.series(
       [
-        (cb) => {
-          this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
-            if (err) return cb(err);
+        async (cb) => {
+          try {
+            const data = await this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {});
             if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             userFound = (data && data[0]) || null;
             cb();
-          });
+          } catch (e: any) {
+            cb(e);
+          }
         },
       ],
       (err) => {
@@ -119,33 +124,33 @@ class AdminBaseController extends GenericController {
     let userFound;
     this.async.series(
       [
-        (cb) => {
-          const criteria = {
-            _id: userData.adminId
-          };
-          this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
-            if (err) cb(err);
+        async (cb) => {
+          try {
+            const criteria = {
+              _id: userData.adminId
+            };
+            const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
+            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
-              if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-              else {
-                userFound = this.convert.toObjectArray(data) && data[0] || null;
-                if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
-                else cb();
-              }
+              userFound = this.convert.toObjectArray(data) && data[0] || null;
+              if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+              else cb();
             }
-          });
-        },
-        (cb) => {
-          const criteria = {
-            emailId: payloadData.emailId
+          } catch (e: any) {
+            cb(e);
           }
-          this.services.AdminService?.getRecord(criteria, {}, {}, (err, data) => {
-            if (err) cb(err)
-            else {
-              if (data.length > 0) cb(this.ERROR.USERNAME_EXIST)
-              else cb()
+        },
+        async (cb) => {
+          try {
+            const criteria = {
+              emailId: payloadData.emailId
             }
-          })
+            const data = await this.services.AdminService?.getRecord(criteria, {}, {});
+            if (data.length > 0) return cb(this.ERROR.USERNAME_EXIST)
+            cb()
+          } catch (e: any) {
+            cb(e)
+          }
         },
         (cb) => {
           payloadData.initialPassword = this.utils.generateRandomString();
@@ -171,32 +176,29 @@ class AdminBaseController extends GenericController {
     let adminList = [];
     let userFound;
     this.async.series([
-      (cb) => {
-        const criteria = {
-          _id: userData.adminId
-        };
-        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
-          if (err) cb(err);
-          else {
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-            else {
-              userFound = (data && data[0]) || null;
-              if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
-              else cb();
-            }
-          }
-        });
+      async (cb) => {
+        try {
+          const criteria = {
+            _id: userData.adminId
+          };
+          const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
+          if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          userFound = (data && data[0]) || null;
+          if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+          else cb();
+        } catch (e: any) {
+          cb(e);
+        }
       },
-      (cb) => {
-        this.services.AdminService?.getRecord({
-          userType: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
-        }, { password: 0, __v: 0, createdAt: 0 }, {}, (err, data) => {
-          if (err) cb(err)
-          else {
-            adminList = data;
-            cb()
-          }
-        })
+      async (cb) => {
+        try {
+          adminList = await this.services.AdminService?.getRecord({
+            userType: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
+          }, { password: 0, __v: 0, createdAt: 0 }, {});
+          cb()
+        } catch (e: any) {
+          cb(e);
+        }
       }
     ], (err) => {
       if (err) callback(err)
@@ -207,30 +209,28 @@ class AdminBaseController extends GenericController {
   blockUnblockAdmin = (userData, payloadData, callback) => {
     let userFound;
     this.async.series([
-      (cb) => {
+      async (cb) => {
         const criteria = {
           _id: userData.adminId
         };
-        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
-          if (err) cb(err);
-          else {
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-            else {
-              userFound = (data && data[0]) || null;
-              if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
-              else cb();
-            }
-          }
-        });
+        const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
+        if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+        else {
+          userFound = (data && data[0]) || null;
+          if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
+          else cb();
+        }
       },
-      (cb) => {
-        this.services.AdminService?.getRecord({ _id: payloadData.adminId }, {}, {}, (err, data) => {
-          if (err) cb(err)
-          else {
-            if (data.length == 0) cb(this.ERROR.USER_NOT_FOUND)
-            else cb()
+      async (cb) => {
+        try {
+          const data = await this.services.AdminService?.getRecord({ _id: payloadData.adminId }, {}, {})
+          if (data.length == 0) {
+            return cb(this.ERROR.USER_NOT_FOUND);
           }
-        })
+          cb();
+        } catch (e: any) {
+          cb(e);
+        }
       },
       (cb) => {
         this.services.AdminService?.updateRecord({ _id: payloadData.adminId }, {
@@ -253,22 +253,26 @@ class AdminBaseController extends GenericController {
   createUser(userData, payloadData, callback) {
     let newUserData;
     this.async.series([
-      (cb) => {
-        const criteria = {
-          _id: userData.adminId
-        };
-        this.services.AdminService?.getRecord(criteria, { password: 0 }, {}, (err, data) => {
-          if (err) return cb(err);
+      async (cb) => {
+        try {
+          const criteria = {
+            _id: userData.adminId
+          };
+          const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
           if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           cb();
-        });
+        } catch (e: any) {
+          cb(e);
+        }
       },
-      (cb) => {
-        this.services.UserService?.getRecord({ emailId: payloadData.emailId }, {}, {}, (err, data) => {
-          if (err) return cb(err);
+      async (cb) => {
+        try {
+          const data = await this.services.UserService?.getRecord({ emailId: payloadData.emailId }, {}, {});
           if (data.length != 0) return cb(this.ERROR.USER_ALREADY_REGISTERED);
           cb();
-        })
+        } catch (e: any) {
+          cb(e);
+        }
       },
       (cb) => {
         payloadData.initialPassword = this.utils.generateRandomString();
@@ -292,36 +296,35 @@ class AdminBaseController extends GenericController {
     let userList = [];
     let userFound: GenericObject | null;
     this.async.series([
-      (cb) => {
-        this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {}, (err, data) => {
-          if (err) cb(err);
+      async (cb) => {
+        try {
+          const data = await this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {});
+          if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           else {
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-            else {
-              userFound = (this.convert.toObjectArray(data) && data[0]) || null;
-              if (userFound?.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
-              else cb()
-            }
+            userFound = (this.convert.toObjectArray(data) && data[0]) || null;
+            if (userFound?.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
+            else cb()
           }
-        });
-      },
-      (cb) => {
-        const projection = {
-          password: 0,
-          accessToken: 0,
-          OTPCode: 0,
-          code: 0,
-          codeUpdatedAt: 0,
-          __v: 0,
-          registrationDate: 0
+        } catch (e: any) {
+          cb(e);
         }
-        this.services.UserService?.getRecord({}, projection, {}, (err, data) => {
-          if (err) cb(err)
-          else {
-            userList = data;
-            cb()
+      },
+      async (cb) => {
+        try {
+          const projection = {
+            password: 0,
+            accessToken: 0,
+            OTPCode: 0,
+            code: 0,
+            codeUpdatedAt: 0,
+            __v: 0,
+            registrationDate: 0
           }
-        })
+          userList = await this.services.UserService?.getRecord({}, projection, {});
+          cb();
+        } catch (e: any) {
+          cb(e);
+        }
       }
     ], (err) => {
       if (err) return callback(err)
@@ -342,25 +345,24 @@ class AdminBaseController extends GenericController {
     let customerData;
     this.async.series(
       [
-        (cb) => {
-          const query = {
-            _id: userData.adminId
-          };
-          const options = { lean: true };
-          this.services.AdminService?.getRecord(query, {}, options, (err, data) => {
-            if (err) {
-              cb(err);
-            } else {
-              if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-              else {
-                customerData = (data && data[0]) || null;
-                if (customerData.isBlocked) cb(this.ERROR.ACCOUNT_BLOCKED);
-                else cb();
-              }
+        async (cb) => {
+          try {
+            const query = {
+              _id: userData.adminId
+            };
+            const options = { lean: true };
+            const data = await this.services.AdminService?.getRecord(query, {}, options);
+            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+            else {
+              customerData = (data && data[0]) || null;
+              if (customerData.isBlocked) cb(this.ERROR.ACCOUNT_BLOCKED);
+              else cb();
             }
-          });
+          } catch (e: any) {
+            cb(e);
+          }
         },
-        (callback) => {
+        async (cb) => {
           const query = {
             _id: userData.adminId
           };
@@ -369,33 +371,28 @@ class AdminBaseController extends GenericController {
             firstLogin: 1
           };
           const options = { lean: true };
-          this.services.AdminService?.getRecord(query, projection, options, (
-            err,
-            data
-          ) => {
-            if (err) {
-              callback(err);
-            } else {
-              customerData = (data && data[0]) || null;
-              if (customerData == null) {
-                callback(this.ERROR.NOT_FOUND);
-              } else {
-                if (payloadData.skip == false) {
-                  if (
-                    data[0].password == oldPassword &&
-                    data[0].password != newPassword
-                  ) {
-                    callback(null);
-                  } else if (data[0].password != oldPassword) {
-                    callback(this.ERROR.WRONG_PASSWORD);
-                  } else if (data[0].password == newPassword) {
-                    callback(this.ERROR.NOT_UPDATE);
-                  }
-                }
-                else callback(null)
+          try {
+            const data = await this.services.AdminService?.getRecord(query, projection, options);
+            customerData = (data && data[0]) || null;
+            if (customerData == null)
+              return cb(this.ERROR.NOT_FOUND);
+            if (payloadData.skip == false) {
+              if (
+                data[0].password == oldPassword &&
+                data[0].password != newPassword
+              ) {
+                return cb(null);
+              } else if (data[0].password != oldPassword) {
+                return cb(this.ERROR.WRONG_PASSWORD);
+              } else if (data[0].password == newPassword) {
+                return cb(this.ERROR.NOT_UPDATE);
               }
             }
-          });
+            cb(null);
+          } catch (e: any) {
+            cb(e);
+          }
+
         },
         (callback) => {
           let dataToUpdate;
@@ -434,29 +431,27 @@ class AdminBaseController extends GenericController {
   blockUnblockUser(userData, payloadData, callback) {
     let userFound;
     this.async.series([
-      (cb) => {
-        this.services.AdminService?.getRecord({
-          _id: userData.adminId
-        }, { password: 0 }, {}, (err, data) => {
-          if (err) cb(err);
-          else {
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-            else {
-              userFound = (data && data[0]) || null;
-              if (userFound.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
-              else cb()
-            }
-          }
-        });
+      async (cb) => {
+        try {
+          const data = await this.services.AdminService?.getRecord({
+            _id: userData.adminId
+          }, { password: 0 }, {});
+          if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          userFound = (data && data[0]) || null;
+          if (userFound.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
+          else cb()
+        } catch (e: any) {
+          cb(e);
+        }
       },
-      (cb) => {
-        this.services.UserService?.getRecord({ _id: payloadData.userId }, {}, {}, (err, data) => {
-          if (err) cb(err)
-          else {
-            if (data.length == 0) cb(this.ERROR.USER_NOT_FOUND)
-            else cb()
-          }
-        })
+      async (cb) => {
+        try {
+          const data = await this.services.UserService?.getRecord({ _id: payloadData.userId }, {}, {})
+          if (data.length == 0) return cb(this.ERROR.USER_NOT_FOUND)
+          cb()
+        } catch (e: any) {
+          cb(e)
+        }
       },
       (cb) => {
         const criteria = {

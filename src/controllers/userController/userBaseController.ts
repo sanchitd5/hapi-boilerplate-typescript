@@ -25,30 +25,31 @@ class UserBaseController extends GenericController {
     if (this.services.UserService)
       this.async.series(
         [
-          (cb) => {
+          async (cb) => {
             const query = {
               $or: [{ emailId: payloadData.emailId }],
             };
-            this.services.UserService?.getRecord(
-              query,
-              {},
-              { lean: true },
-              (error, data) => {
-                if (error) cb(error as Error);
-                else if (this.convert.toObjectArray(data)) {
-                  if (!data.length) return cb();
-                  if (data[0].emailVerified == true)
-                    return cb(this.ERROR.USER_ALREADY_REGISTERED as any);
-                  this.services.UserService?.deleteRecord(
-                    { _id: data[0]._id },
-                    (err) => {
-                      if (err) return cb(err as Error);
-                      cb(null);
-                    }
-                  );
-                } else cb();
-              }
-            );
+            try {
+              const data = await this.services.UserService?.getRecord(
+                query,
+                {},
+                { lean: true }
+              );
+              if (this.convert.toObjectArray(data)) {
+                if (!data.length) return cb();
+                if (data[0].emailVerified == true)
+                  return cb(this.ERROR.USER_ALREADY_REGISTERED as any);
+                this.services.UserService?.deleteRecord(
+                  { _id: data[0]._id },
+                  (err) => {
+                    if (err) return cb(err as Error);
+                    cb(null);
+                  }
+                );
+              } else cb();
+            } catch (e: any) {
+              cb(e);
+            }
           },
           (cb) => {
             //Validate for facebookId and password
@@ -175,21 +176,24 @@ class UserBaseController extends GenericController {
     let customerData: GenericObject;
     this.async.series(
       [
-        (cb) => {
+        async (cb) => {
           const query = {
             _id: userData.userId,
           };
           const options = { lean: true };
-          this.services.UserService?.getRecord(
-            query,
-            {},
-            options,
-            (err, data) => {
-              if (err) return cb(err as Error); 
-              if (this.convert.toObjectArray(data)) customerData = data[0];
-              cb();
+          try {
+            const data = await this.services.UserService?.getRecord(
+              query,
+              {},
+              options
+            );
+            if (this.convert.toObjectArray(data)) {
+              customerData = data && data[0];
             }
-          );
+            cb();
+          } catch (e: any) {
+            cb(e);
+          }
         },
         (cb) => {
           //Check verification code :
@@ -236,22 +240,21 @@ class UserBaseController extends GenericController {
     let updatedUserDetails: GenericObject;
     this.async.series(
       [
-        (cb) => {
-          const criteria = { emailId: payloadData.emailId };
-          const option = { lean: true };
-          this.services.UserService?.getRecord(
-            criteria,
-            {},
-            option,
-            (err, result) => {
-              if (err) cb(err as Error);
-              else {
-                if (this.convert.toObjectArray(result))
-                  userFound = result[0] || null;
-                cb();
-              }
-            }
-          );
+        async (cb) => {
+          try {
+            const criteria = { emailId: payloadData.emailId };
+            const option = { lean: true };
+            const result = await this.services.UserService?.getRecord(
+              criteria,
+              {},
+              option
+            );
+            if (this.convert.toObjectArray(result))
+              userFound = result[0] || null;
+            cb();
+          } catch (e: any) {
+            cb(e);
+          }
         },
         (cb) => {
           //validations
@@ -293,7 +296,7 @@ class UserBaseController extends GenericController {
             );
           } else cb(this.ERROR.USER_NOT_FOUND as any);
         },
-        (cb) => {
+        async (cb) => {
           const criteria = { emailId: payloadData.emailId };
           const projection = {
             password: 0,
@@ -304,18 +307,15 @@ class UserBaseController extends GenericController {
             codeUpdatedAt: 0,
           };
           const option = { lean: true };
-          this.services.UserService?.getRecord(
+          const result = await this.services.UserService?.getRecord(
             criteria,
             projection,
-            option,
-            (err, result) => {
-              if (err) cb(err as Error);
-              else if (this.convert.toObjectArray(result)) {
-                userFound = (result && result[0]) || null;
-                cb();
-              } else cb();
-            }
+            option
           );
+          if (this.convert.toObjectArray(result)) {
+            userFound = (result && result[0]) || null;
+            cb();
+          } else cb();
         },
         (cb) => {
           if (successLogin && this.convert.toObject(userFound)) {
@@ -337,7 +337,7 @@ class UserBaseController extends GenericController {
               }
             );
           }
-		  cb(this.ERROR.IMP_ERROR as any);
+          cb(this.ERROR.IMP_ERROR as any);
         },
         (cb) => {
           appVersion = {
@@ -365,33 +365,34 @@ class UserBaseController extends GenericController {
 
   resendOTP = (userData: any, callback: GenericServiceCallback) => {
     /*
-			 Create a Unique 6 digit code
-			 Insert It Into Customer DB
-			 Send Back Response
-			 */
+       Create a Unique 6 digit code
+       Insert It Into Customer DB
+       Send Back Response
+       */
     let uniqueCode: number;
     let customerData;
     this.async.series(
       [
-        (cb) => {
+        async (cb) => {
           const query = {
             _id: userData.userId,
           };
           const options = { lean: true };
-          this.services.UserService?.getRecord(
-            query,
-            {},
-            options,
-            (err, data) => {
-              if (err) return cb(err as Error);
-              if (this.convert.toObject(data)) {
-                customerData = data[0] || null;
-                if (customerData.emailVerified == true)
-                  return cb(this.ERROR.EMAIL_VERIFICATION_COMPLETE as any);
-              }
-              cb();
+          try {
+            const data = await this.services.UserService?.getRecord(
+              query,
+              {},
+              options
+            );
+            if (this.convert.toObject(data)) {
+              customerData = data[0] || null;
+              if (customerData.emailVerified == true)
+                return cb(this.ERROR.EMAIL_VERIFICATION_COMPLETE as any);
             }
-          );
+            cb();
+          } catch (e: any) {
+            cb(e);
+          }
         },
         (cb) => {
           CodeGenerator.generateUniqueCode(
@@ -425,7 +426,7 @@ class UserBaseController extends GenericController {
     );
   };
 
-  getOTP = (payloadData: any, callback: GenericServiceCallback) => {
+  getOTP = async (payloadData: any, callback: GenericServiceCallback) => {
     const query = {
       emailId: payloadData.emailId,
     };
@@ -433,13 +434,16 @@ class UserBaseController extends GenericController {
       _id: 0,
       OTPCode: 1,
     };
-    this.services.UserService?.getRecord(query, projection, {}, (err, data) => {
-      if (err) return callback(err);
+    try {
+      const data = await this.services.UserService?.getRecord(query, projection, {});
       const customerData = (data && (data as any)[0]) || null;
-      if (customerData == null || customerData.OTPCode == undefined)
+      if (customerData == null || customerData.OTPCode == undefined) {
         return callback(this.ERROR.OTP_CODE_NOT_FOUND);
+      }
       callback(null, customerData);
-    });
+    } catch (e: any) {
+      callback(e)
+    }
   };
 
   accessTokenLogin = (payload: any, callback: GenericServiceCallback) => {
@@ -448,28 +452,29 @@ class UserBaseController extends GenericController {
     let userFound: any;
     this.async.series(
       [
-        (cb) => {
+        async (cb) => {
           const criteria = {
             _id: userData.userId,
           };
-          this.services.UserService?.getRecord(
-            criteria,
-            { password: 0 },
-            {},
-            (err, data) => {
-              if (err) return cb(err);
-              userFound = data && data[0];
-              if (userFound.isBlocked)
-                return cb(this.ERROR.ACCOUNT_BLOCKED as any);
-              appVersion = {
-                latestIOSVersion: 100,
-                latestAndroidVersion: 100,
-                criticalAndroidVersion: 100,
-                criticalIOSVersion: 100,
-              };
-              cb();
-            }
-          );
+          try {
+            const data = await this.services.UserService?.getRecord(
+              criteria,
+              { password: 0 },
+              {}
+            );
+            userFound = data && data[0];
+            if (userFound.isBlocked)
+              return cb(this.ERROR.ACCOUNT_BLOCKED as any);
+            appVersion = {
+              latestIOSVersion: 100,
+              latestAndroidVersion: 100,
+              criticalAndroidVersion: 100,
+              criticalIOSVersion: 100,
+            };
+            cb();
+          } catch (e: any) {
+            cb(e);
+          }
         },
       ],
       (err) => {
@@ -487,7 +492,7 @@ class UserBaseController extends GenericController {
     this.services.TokenService.deleteRecord({ _id: tokenData._id }, callback);
   };
 
-  getProfile = (userData: any, callback: GenericServiceCallback) => {
+  getProfile = async (userData: any, callback: GenericServiceCallback) => {
     const query = {
       _id: userData.userId,
     };
@@ -497,13 +502,15 @@ class UserBaseController extends GenericController {
       accessToken: 0,
       codeUpdatedAt: 0,
     };
-    this.services.UserService?.getRecord(query, projection, {}, (err, data) => {
-      if (err) return callback(err);
+    try {
+      const data = await this.services.UserService?.getRecord(query, projection, {});
       const customerData = (data && data[0]) || null;
       if (customerData.isBlocked)
         return callback(this.ERROR.ACCOUNT_BLOCKED as any);
       callback(null, customerData);
-    });
+    } catch (e: any) {
+      callback(e);
+    }
   };
 
   changePassword = (
@@ -516,12 +523,12 @@ class UserBaseController extends GenericController {
     let customerData: any;
     this.async.series(
       [
-        (cb) => {
+        async (cb) => {
           const query = {
             _id: userData.userId,
           };
-          this.services.UserService?.getRecord(query, {}, {}, (err, data) => {
-            if (err) return cb(err as Error);
+          try {
+            const data = await this.services.UserService?.getRecord(query, {}, {});
             if (this.convert.toObjectArray(data)) {
               customerData = data[0] || null;
               if (customerData.isBlocked)
@@ -529,9 +536,11 @@ class UserBaseController extends GenericController {
               return cb();
             }
             cb();
-          });
+          } catch (e: any) {
+            cb(e);
+          }
         },
-        (callback) => {
+        async (callback) => {
           const query = {
             _id: userData.userId,
           };
@@ -539,29 +548,26 @@ class UserBaseController extends GenericController {
             password: 1,
             firstLogin: 1,
           };
-          this.services.UserService?.getRecord(
+          const data = await this.services.UserService?.getRecord(
             query,
             projection,
-            {},
-            (err, data) => {
-              if (err) return callback(err);
-              customerData = (data && data[0]) || null;
-              if (customerData == null)
-                return callback(this.ERROR.NOT_FOUND as any);
-              if (payloadData.skip == false) {
-                if (
-                  data[0].password == oldPassword &&
-                  data[0].password != newPassword
-                ) {
-                  callback(null);
-                } else if (data[0].password != oldPassword) {
-                  callback(this.ERROR.WRONG_PASSWORD as any);
-                } else if (data[0].password == newPassword) {
-                  callback(this.ERROR.NOT_UPDATE as any);
-                }
-              } else callback(null);
-            }
+            {}
           );
+          customerData = (data && data[0]) || null;
+          if (customerData == null)
+            return callback(this.ERROR.NOT_FOUND as any);
+          if (payloadData.skip == false) {
+            if (
+              data[0].password == oldPassword &&
+              data[0].password != newPassword
+            ) {
+              callback(null);
+            } else if (data[0].password != oldPassword) {
+              callback(this.ERROR.WRONG_PASSWORD as any);
+            } else if (data[0].password == newPassword) {
+              callback(this.ERROR.NOT_UPDATE as any);
+            }
+          } else callback(null);
         },
         (callback) => {
           let dataToUpdate;
@@ -616,31 +622,31 @@ class UserBaseController extends GenericController {
     let forgotDataEntry: any;
     this.async.series(
       [
-        (cb) => {
+        async (cb) => {
           const query = {
             emailId: payloadData.emailId,
           };
-          this.services.UserService?.getRecord(
-            query,
-            {
-              _id: 1,
-              emailId: 1,
-              emailVerified: 1,
-            },
-            {},
-            (err, data) => {
-              if (err)
-                return cb(this.ERROR.PASSWORD_CHANGE_REQUEST_INVALID as any);
-              dataFound = (data && data[0]) || null;
-              if (dataFound == null)
-                return cb(this.ERROR.USER_NOT_REGISTERED as any);
-              if (dataFound.emailVerified == false)
-                return cb(this.ERROR.NOT_VERFIFIED as any);
-              if (dataFound.isBlocked)
-                return cb(this.ERROR.ACCOUNT_BLOCKED as any);
-              cb();
-            }
-          );
+          try {
+            const data = await this.services.UserService?.getRecord(
+              query,
+              {
+                _id: 1,
+                emailId: 1,
+                emailVerified: 1,
+              },
+              {}
+            );
+            dataFound = (data && data[0]) || null;
+            if (dataFound == null)
+              return cb(this.ERROR.USER_NOT_REGISTERED as any);
+            if (dataFound.emailVerified == false)
+              return cb(this.ERROR.NOT_VERFIFIED as any);
+            if (dataFound.isBlocked)
+              return cb(this.ERROR.ACCOUNT_BLOCKED as any);
+            cb();
+          } catch (e) {
+            cb(this.ERROR.PASSWORD_CHANGE_REQUEST_INVALID as any);
+          }
         },
         (cb) => {
           CodeGenerator.generateUniqueCode(
@@ -672,21 +678,22 @@ class UserBaseController extends GenericController {
             }
           );
         },
-        (cb) => {
-          this.services.ForgetPasswordService.getRecord(
-            { customerID: dataFound._id },
-            {
-              _id: 1,
-              isChanged: 1,
-            },
-            { lean: 1 },
-            (err, data) => {
-              if (err) return cb(err as Error);
-              forgotDataEntry =
-                (this.convert.toObjectArray(data) && data[0]) || null;
-              cb();
-            }
-          );
+        async (cb) => {
+          try {
+            const data = await this.services.ForgetPasswordService.getRecord(
+              { customerID: dataFound._id },
+              {
+                _id: 1,
+                isChanged: 1,
+              },
+              { lean: 1 }
+            );
+            forgotDataEntry =
+              (this.convert.toObjectArray(data) && data[0]) || null;
+            cb();
+          } catch (e: any) {
+            cb(e);
+          }
         },
         (cb) => {
           const data = {
@@ -726,61 +733,57 @@ class UserBaseController extends GenericController {
     let data: GenericObject | null;
     this.async.series(
       [
-        (callback) => {
+        async (callback) => {
           const query = {
             emailId: payloadData.emailId,
           };
-          this.services.UserService?.getRecord(
-            query,
-            {
-              _id: 1,
-              code: 1,
-              emailVerified: 1,
-            },
-            { lean: true },
-            (err, result) => {
-              if (err) {
-                callback(err as Error);
+          try {
+            const result = await this.services.UserService?.getRecord(
+              query,
+              {
+                _id: 1,
+                code: 1,
+                emailVerified: 1,
+              },
+              { lean: true }
+            );
+            if (this.convert.toObjectArray(result))
+              data = (result && result[0]) || null;
+            if (data == null) {
+              callback(this.ERROR.INCORRECT_ID as any);
+            } else {
+              if (payloadData.OTPCode != data.code) {
+                callback(this.ERROR.INVALID_CODE as any);
               } else {
-                if (this.convert.toObjectArray(result))
-                  data = (result && result[0]) || null;
-                if (data == null) {
-                  callback(this.ERROR.INCORRECT_ID as any);
+                if (data.phoneVerified == false) {
+                  callback(this.ERROR.NOT_VERFIFIED as any);
                 } else {
-                  if (payloadData.OTPCode != data.code) {
-                    callback(this.ERROR.INVALID_CODE as any);
-                  } else {
-                    if (data.phoneVerified == false) {
-                      callback(this.ERROR.NOT_VERFIFIED as any);
-                    } else {
-                      customerId = data._id;
-                      callback();
-                    }
-                  }
+                  customerId = data._id;
+                  callback();
                 }
               }
             }
-          );
+          } catch (e: any) {
+            callback(e)
+          }
         },
         (callback) => {
-          const query = { customerID: customerId, isChanged: false };
-          this.services.ForgetPasswordService.getRecord(
-            query,
-            { __v: 0 },
-            {
-              limit: 1,
-              lean: true,
-            },
-            (err, data) => {
-              if (err) {
-                callback(err as Error);
-              } else {
-                if (this.convert.toObjectArray(data))
-                  foundData = (data && data[0]) || null;
-                callback();
+          try {
+            const query = { customerID: customerId, isChanged: false };
+            this.services.ForgetPasswordService.getRecord(
+              query,
+              { __v: 0 },
+              {
+                limit: 1,
+                lean: true,
               }
-            }
-          );
+            );
+            if (this.convert.toObjectArray(data))
+              foundData = (data && data[0]) || null;
+            callback();
+          } catch (e:any) {
+            callback(e);
+          }
         },
         (callback) => {
           if (!this.utils.isEmpty(foundData)) {

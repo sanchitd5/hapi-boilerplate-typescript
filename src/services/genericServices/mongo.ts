@@ -1,7 +1,9 @@
-import Mongo from "./../models/mongo/index";
-import { GenericObject, GenericServiceCallback } from '../../definations';
-import mongoose from "mongoose";
+import { Callback, CallbackError, FilterQuery, PipelineStage, ProjectionType, QueryOptions, UpdateQuery, UpdateWithAggregationPipeline } from "mongoose";
 import GenericDBService from "./generic";
+import MongoModels from "./../models/mongo/index";
+
+type MongoServiceCallback = ((err: CallbackError, doc: any, res: any) => void)
+
 
 
 /**
@@ -9,108 +11,100 @@ import GenericDBService from "./generic";
  * @description Generic MongoDB Service Template
  */
 export default class GenericMongoService extends GenericDBService {
-    declare model: mongoose.Model<unknown>;
+    declare modelName: string;
+    declare objects: Array<any>;
 
-    /**
-     * 
-     * @param {String} modelName Name of the Model
-     */
     constructor(modelName: string) {
         super();
-        if (!this.isModelValid(Mongo, modelName)) {
-            console.error(`Invalid model name ${modelName}`);
+        if (!this.#isModelValid(modelName)) {
+            appLogger.fatal(`Invalid model name ${modelName}`);
             throw "Invalid model name '" + modelName + "'. Terminating app..."
         }
-        this.model = Mongo[modelName];
+
+        this.modelName = modelName;
+        this.objects = [];
+    }
+
+    /**
+     * @private
+     * @author Sanchit Dang
+     * @description Validate if models exists
+     * @param {String} modelName name of the model 
+     */
+    #isModelValid(modelName: string) {
+        return !(!modelName || 0 === modelName.length || !MongoModels.hasOwnProperty(modelName as PropertyKey));
     }
 
     /**
      * @author Sanchit Dang
      * @description Update a record in DB
-     * @param {Object} criteria 
-     * @param {Object} data 
-     * @param {Object} options 
-     * @param {Function} callback 
      */
-    async updateRecord(criteria: GenericObject, data: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
-        try {
-            options.lean = true;
-            options.new = true;
-            const result = await this.model.findOneAndUpdate(criteria, data, options, callback);
-            if (!callback) return result;
-        } catch (error) {
-            if (!callback) throw error;
-        }
+    updateRecord(criteria: FilterQuery<any> = {}, data: UpdateQuery<any> = {}, options: QueryOptions = {}, callback: MongoServiceCallback) {
+        options.lean = true;
+        options.new = true;
+        MongoModels[this.modelName].findOneAndUpdate(criteria, data, options, callback);
     }
 
     /**
      * @author Sanchit Dang
      * @description Insert a record in DB
-     * @param {Object} data 
-     * @param {Function} callback 
      */
-    async createRecord(data: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
-        try {
-            const result = await new this.model(data).save();
-            if (!callback) return result;
-            else callback(null, result);
-        } catch (error) {
-            if (!callback) throw error;
-        }
-
+    createRecord(data: any, callback: MongoServiceCallback) {
+        new MongoModels[this.modelName](data).save(callback);
     }
 
     /**
      * @author Sanchit Dang
      * @description Hard delete a record
-     * @param {Object} criteria 
-     * @param {Function} callback 
      */
-    async deleteRecord(criteria: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
-        try {
-            const result = await this.model.findOneAndRemove(criteria, callback);
-            if (!callback) return result;
-        } catch (error) {
-            if (!callback) throw error;
-        }
+    deleteRecord(criteria: FilterQuery<any>, callback: Function) {
+        MongoModels[this.modelName].findOneAndRemove(criteria, callback);
     }
 
     /**
      * @author Sanchit Dang
      * @description Retrive records
-     * @param {Object} criteria 
-     * @param {Object} projection 
-     * @param {Object} options 
-     * @param {Function} callback 
      */
-    async getRecord(criteria: GenericObject, projection: GenericObject, options: GenericObject, callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
-        try {
-            options.lean = true;
-            const result = await this.model.find(criteria, projection, options, callback);
-            if (!callback) return result;
-        } catch (error) {
-            if (!callback) throw error;
-        }
+    async getRecord(criteria: FilterQuery<any> = {}, projection: ProjectionType<any> | null = {}, options: QueryOptions = {}): Promise<any[]> {
+        options.lean = true;
+        return MongoModels[this.modelName].find(criteria, projection, options);
     }
 
     /**
      * @author Sanchit Dang
      * @description Retrive records while populating them
-     * @param {Object} criteria 
-     * @param {Object} projection 
-     * @param {Object|string} populate 
-     * @param {Function} callback 
      */
-    async getPopulatedRecords(criteria: GenericObject, projection: GenericObject, populate: string | string[], callback?: GenericServiceCallback | ((err?: Error | null | undefined, result?: unknown) => void)) {
-        try {
-            const result = await this.model.find(criteria).select(projection).populate(populate);
-            if (!callback) return result;
-            else {
-                callback(null, result);
-            }
-        } catch (error) {
-            if (!callback) throw error;
-        }
+    getPopulatedRecords(criteria: FilterQuery<any> = {}, projection: ProjectionType<any> | null = {}, populate: string | string[], callback: Callback<Omit<any, never>[]>) {
+        MongoModels[this.modelName].find(criteria).select(projection).populate(populate).exec(callback)
+    }
+
+    /**
+     * @author Sanchit Dang
+     * @description Aggregate Records
+     */
+    aggregate(pipeline: PipelineStage[], options: any, callback: Callback<any>) {
+        MongoModels[this.modelName].aggregate(pipeline, options, callback);
+    }
+
+
+    /**
+     * @deprecated Use getRecord instead
+     * @author Sanchit Dang
+     * @description get records using promise
+     */
+    getRecordUsingPromise(criteria: FilterQuery<any> = {}, projection: ProjectionType<any> | null = {}, options: QueryOptions = {}): Promise<any> {
+        options.lean = true;
+        return this.getRecord(criteria, projection, options);
+    }
+
+    updateMany(criteria: FilterQuery<any>, data: UpdateQuery<any> | UpdateWithAggregationPipeline, options: QueryOptions, callback: Callback<any>) {
+        options.lean = true;
+        options.new = true;
+        MongoModels[this.modelName].updateMany(criteria, data, options, callback);
+    }
+
+    async empty() {
+        await MongoModels[this.modelName].deleteMany().exec()
     }
 
 }

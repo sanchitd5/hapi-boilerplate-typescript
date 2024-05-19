@@ -1,5 +1,5 @@
 import { Model } from "sequelize";
-import { Util as HapiUtil, Lifecycle as HapiLifecycle } from "@hapi/hapi";
+import { Util as HapiUtil, Lifecycle as HapiLifecycle, RouteOptionsValidate } from "@hapi/hapi";
 
 export interface GenericObject {
   [key: string]: any;
@@ -50,7 +50,7 @@ export enum AuthType {
 
 export interface RouteProperties {
   method: HapiUtil.HTTP_METHODS_PARTIAL[] | string;
-  validate?: GenericObject;
+  validate?: RouteOptionsValidate;
   path: string;
   handler: HapiLifecycle.Method;
   auth: AuthType;

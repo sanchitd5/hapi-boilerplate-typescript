@@ -11,12 +11,12 @@ class AppConfig {
     declare noOfClusters: number;
     constructor() {
         this.databases = {
-            mongo: true,
+            mongo: false,
             postgres: false,
             mysql: false
         };
-        this.userDatabase = DATABASE.MONGODB;
-        this.adminDatabase = DATABASE.MONGODB;
+        this.userDatabase = DATABASE.NONE;
+        this.adminDatabase = DATABASE.NONE;
         this.useSocket = false;
         this.noOfClusters = 4;
     }

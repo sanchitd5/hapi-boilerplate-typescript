@@ -14,6 +14,7 @@ import randomstring from "randomstring";
 import validator from "validator";
 import { DateTime } from "luxon";
 import converters from "./converters";
+import _ from "lodash";
 
 export const createRoute = (props: RouteProperties): Hapi.ServerRoute => {
   if (!props.validate || !props.validate.failAction) {
@@ -323,8 +324,50 @@ export const cleanObject = (
   return newObj;
 };
 
-export const throwIfNotRunningPnpm=()=>{
-  if(process.env.npm_execpath && !process.env.npm_execpath.includes('pnpm')) {
-    throw('Please use pnpm to run this project');
+export const throwIfNotRunningPnpm = () => {
+  if (process.env.npm_execpath && !process.env.npm_execpath.includes('pnpm')) {
+    throw ('Please use pnpm to run this project');
   }
 }
+
+const avgArray = (arr: Array<number>) => {
+  if (!Array.isArray(arr)) {
+    throw new Error('Input is not an array');
+  }
+  if (arr.length === 0) {
+    throw new Error('Array is empty');
+  }
+  let total = 0;
+  for (let i = 0; i < arr.length; i++) {
+    total += arr[i];
+  }
+  return total / arr.length;
+};
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+export default {
+  ..._,
+  generateRandomString,
+  CryptData,
+  CONFIG,
+  sendError,
+  sendSuccess,
+  failActionFunction,
+  authorizationHeaderObj,
+  validateLatLongValues,
+  validateString,
+  verifyEmailFormat,
+  deleteUnnecessaryUserData,
+  generateFilenameWithExtension,
+  getTimestamp,
+  generateRandomNumber,
+  createArray,
+  generateRandomAlphabet,
+  getRange,
+  checkFileExtension,
+  cleanObject,
+  avgArray,
+  delay,
+};

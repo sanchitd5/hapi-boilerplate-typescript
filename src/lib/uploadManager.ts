@@ -2,7 +2,7 @@ import CONFIG from '../config';
 import { generateFilenameWithExtension } from '../utils';
 import { parallel, waterfall } from 'async';
 import { resolve } from 'path';
-import { unlink, createWriteStream, copy, readFile} from 'fs-extra';
+import { unlink, createWriteStream, copy, readFile } from 'fs-extra';
 import ffmpeg from 'fluent-ffmpeg';
 import * as AWS from 'aws-sdk';
 import * as gmParent from 'gm';
@@ -156,7 +156,7 @@ const createThumbnailImage = function createThumbnailImage(path: string, name: s
     gm(path + name)
         .resize(160, 160, "!")
         .autoOrient()
-        .write(thumbPath, function (err: Error) {
+        .write(thumbPath, async (err: Error | null) => {
             uploadLogger.info('createThumbnailImage');
             if (!err) {
                 return callback(null);
@@ -167,8 +167,7 @@ const createThumbnailImage = function createThumbnailImage(path: string, name: s
                         data: {}
                     },
                     statusCode: 500
-                };
-                uploadLogger.info('<<<<<<<<<<<<<<<<<', error);
+                }; 
                 return callback(error);
             }
         })

@@ -8,17 +8,13 @@ import config from '../config';
 const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback) => {
     let _skip = false;
     async.series([
-        (cb) => {
-            Service.AdminService?.getRecord({ emailId: adminData.emailId }, {}, {}, (err, data) => {
-                if (err) cb(err)
-                else {
-                    if (data.length > 0) {
-                        _skip = true;
-                        cb()
-                    }
-                    else cb()
-                }
-            })
+        async (cb) => {
+            const data = await Service.AdminService?.getRecord({ emailId: adminData.emailId }, {}, {})
+            if (data.length > 0) {
+                _skip = true;
+                return cb()
+            }
+            cb()
         },
         (cb) => {
             if (!_skip) {

@@ -50,7 +50,7 @@ const getTokenFromDB = async function (
  * @param {String} tokenData.deviceUUID
  * @param {Function} callback
  */
-const setTokenInDB = function (
+const setTokenInDB = async function (
   userId: string,
   userType: string,
   tokenData: GenericObject,
@@ -70,8 +70,9 @@ const setTokenInDB = function (
       criteria = { userId, deviceUUID: tokenData.deviceUUID };
     }
   }
-  Services.TokenService.getRecord(criteria, {}, {}, (err, data) => {
-    if (err) return callback(err as Error);
+
+  try {
+    const data = await Services.TokenService.getRecord(criteria, {}, {});
     if (data.length === 0) {
       Services.TokenService.createRecord(objectToCreate, (err, data) => {
         if (err) return callback(err as Error);
@@ -80,7 +81,9 @@ const setTokenInDB = function (
     } else {
       Services.TokenService.updateRecord(criteria, tokenData, {}, callback);
     }
-  });
+  } catch (e) {
+    return callback(e);
+  }
 };
 
 /**
