@@ -87,11 +87,7 @@ const createAdmin: ServerRoute = {
   method: "POST",
   path: "/api/admin/usermanagement/admin",
   handler: function (request, h) {
-    const userData =
-      (request.auth &&
-        request.auth.credentials &&
-        request.auth.credentials.userData) ||
-      null;
+    const userData = request.auth?.credentials?.userData || null;
     const payloadData: any = request.payload;
     return new Promise((resolve, reject) => {
       if (!verifyEmailFormat(payloadData.emailId)) {
@@ -182,7 +178,7 @@ const blockUnblockAdmin: ServerRoute = {
         userData,
         {
           sid: request.params.sid,
-          block: (request.payload as{block:boolean}).block,
+          block: (request.payload as { block: boolean }).block,
         },
         (err: Error, data: any) => {
           if (err) return reject(sendError(err));
@@ -322,11 +318,11 @@ const blockUnblockUser: ServerRoute = {
       (request.auth &&
         request.auth.credentials &&
         request.auth.credentials.userData) ||
-      null; 
+      null;
     return new Promise((resolve, reject) => {
       Controller.AdminBaseController.blockUnblockUser(
         userData,
-        {userId:request.params.sid ,block: (request.payload as{block:boolean}).block},
+        { userId: request.params.sid, block: (request.payload as { block: boolean }).block },
         (err: Error, data: any) => {
           if (!err) {
             resolve(sendSuccess(undefined, data));

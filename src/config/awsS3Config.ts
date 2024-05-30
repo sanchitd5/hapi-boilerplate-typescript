@@ -34,7 +34,7 @@ class S3BucketCredentials implements AwsS3BucketProperties {
     readonly bucket: string;
     readonly endpoint = "";
     readonly apiKeyId = "";
-    readonly serviceInstanceId = "crn:v1:bluemix:public:cloud-object-storage:global:a/200d885c6c6a4629814c74e3c7594d35:bb53fed0-c301-4705-ad41-27a08a0ae3a6:bucket:ipan-v2-bucket";
+    readonly serviceInstanceId = "";
     readonly folder: S3FolderDetails;
 
     constructor(data: S3BucketCredentialsProps) {

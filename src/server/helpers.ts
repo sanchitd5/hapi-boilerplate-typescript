@@ -112,9 +112,8 @@ class ServerHelper {
       server.log(["info"], "Plugins Loaded");
     } catch (e) {
       server.log(["error"], "Error while loading plugins : " + e);
-    } finally {
-      return server;
     }
+    return server; 
   }
 
   configureLog4js = (pid: number) => {
