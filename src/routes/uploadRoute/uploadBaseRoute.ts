@@ -3,6 +3,7 @@ import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction } from "../../utils";
 import Controller from "../../controllers";
 import Config from "../../config";
+import { GenericObject } from "../../definations";
 
 const uploadImage: ServerRoute = {
   method: "POST",
@@ -15,7 +16,7 @@ const uploadImage: ServerRoute = {
           reject(sendError(err));
         } else {
           resolve(
-            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data as GenericObject)
           );
         }
       });
@@ -58,7 +59,7 @@ const uploadVideo: ServerRoute = {
           reject(sendError(err));
         } else {
           resolve(
-            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+            sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data as GenericObject)
           );
         }
       });
@@ -103,7 +104,7 @@ const uploadDocument: ServerRoute = {
             reject(sendError(err));
           } else {
             resolve(
-              sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data)
+              sendSuccess(Config.APP_CONSTANTS.STATUS_MSG.SUCCESS.DEFAULT, data as GenericObject)
             );
           }
         }

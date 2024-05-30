@@ -3,6 +3,7 @@ import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
 import Controller from "../../controllers";
 import Config from '../../config';
+import { GenericObject } from '../../definations';
 
 const userRegister = {
   method: "POST",
@@ -25,7 +26,7 @@ const userRegister = {
               sendSuccess(
                 Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .CREATED,
-                data
+                data as GenericObject
               )
             );
           });
@@ -69,7 +70,7 @@ const verifyOTP = {
               sendSuccess(
                 Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .VERIFY_COMPLETE,
-                data
+                data as GenericObject
               )
             );
           }
@@ -111,7 +112,7 @@ const login = {
         } else {
           Controller.UserBaseController.loginUser(payloadData, (err, data) => {
             if (err) reject(sendError(err));
-            else resolve(sendSuccess(undefined, data));
+            else resolve(sendSuccess(undefined, data as GenericObject));
           });
         }
       });
@@ -160,7 +161,7 @@ const resendOTP = {
               sendSuccess(
                 Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .VERIFY_SENT,
-                data
+                data as GenericObject
               )
             );
           }
@@ -196,7 +197,7 @@ const getOTP = {
               sendSuccess(
                 Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                   .DEFAULT,
-                success
+                success as GenericObject
               )
             );
           }
@@ -233,7 +234,7 @@ const accessTokenLogin = {
       return new Promise((resolve, reject) => {
         Controller.UserBaseController.accessTokenLogin(userData, (err, data) => {
           if (!err) {
-            resolve(sendSuccess(undefined, data));
+            resolve(sendSuccess(undefined, data  as GenericObject));
           } else {
             reject(sendError(err));
           }
@@ -318,7 +319,7 @@ const getProfile = {
                 sendSuccess(
                   Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                     .DEFAULT,
-                  success
+                  success as GenericObject
                 )
               );
             }
@@ -368,7 +369,7 @@ const changePassword = {
                 sendSuccess(
                   Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                     .PASSWORD_RESET,
-                  user
+                  user as GenericObject
                 )
               );
             } else {
@@ -424,7 +425,7 @@ const forgotPassword = {
                   sendSuccess(
                     Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                       .VERIFY_SENT,
-                    success
+                    success as GenericObject
                   )
                 );
               }
@@ -473,7 +474,7 @@ const resetPassword = {
                 sendSuccess(
                   Config.APP_CONSTANTS.STATUS_MSG.SUCCESS
                     .PASSWORD_RESET,
-                  success
+                  success as GenericObject
                 )
               );
             }

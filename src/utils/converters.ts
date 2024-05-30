@@ -8,7 +8,7 @@ class DataTypeConverters {
     toObject = (data: unknown): data is GenericObject => !!data;
     toUnknown = (data: unknown): data is unknown => !!data;
     toError = (error: unknown): error is Error => !!error;
-    toFrozenResponseMessage = (error: unknown): error is FrozenResponseMessage => !!error;
+    toFrozenResponseMessage = (error: unknown): error is FrozenResponseMessage => !!error && !!Object.freeze(error);
     isMongoError = (error: GenericObject): error is MongoError => error.name === 'MongoError';
     isApplicationError = (error: GenericObject): error is ApplicationError => error.name === 'ApplicationError';
     isValidationError = (error: GenericObject): error is ValidationError => error.name === 'ValidationError';

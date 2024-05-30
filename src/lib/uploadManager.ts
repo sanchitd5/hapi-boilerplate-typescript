@@ -4,7 +4,7 @@ import { parallel, waterfall } from 'async';
 import { resolve } from 'path';
 import { unlink, createWriteStream, copy, readFile } from 'fs-extra';
 import ffmpeg from 'fluent-ffmpeg';
-import * as AWS from 'aws-sdk';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import * as gmParent from 'gm';
 import { GenericServiceCallback } from '../definations';
 import converters from '../utils/converters';
@@ -26,7 +26,7 @@ const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null |
     });
 
 }
-const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb: boolean, callback: GenericServiceCallback) {
+const uploadImageToS3Bucket = async (file: any, isThumb: boolean, callback: GenericServiceCallback) => {
 
     let path = file.path, filename = file.name, folder = file.s3Folder;
     const mimeType = file.mimeType;
@@ -35,15 +35,8 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
         filename = file.thumbName;
         folder = file.s3FolderThumb;
     }
-    //<------ Start of Configuration for ibm bucket -------------->
-    const ibms3Config = {
-        endpoint: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint,
-        apiKeyId: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.apiKeyId,
-        serviceInstanceId: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.serviceInstanceId
-    };
-    //<------ End of Configuration for ibm bucket -------------->
     uploadLogger.info("path to read::" + path + filename);
-    readFile(path + filename, function (error, fileBuffer) {
+    readFile(path + filename, async (error, fileBuffer) => {
         uploadLogger.info("path to read from temp::" + path + filename);
         if (error) {
             uploadLogger.error("UPLOAD", error, fileBuffer);
@@ -56,8 +49,9 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
             };
             return callback(errResp);
         }
-
-        const s3bucket = new AWS.S3(ibms3Config);
+        const s3Client = new S3Client({
+            endpoint: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.endpoint,
+        });
         const params = {
             Bucket: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket,
             Key: folder + '/' + filename,
@@ -65,28 +59,32 @@ const uploadImageToS3Bucket = function uploadImageToS3Bucket(file: any, isThumb:
             ACL: 'public-read',
             ContentType: mimeType
         };
+        try {
+            const data = await s3Client.send(new PutObjectCommand({
+                Bucket: CONFIG.AWS_S3_CONFIG.s3BucketCredentials.bucket,
+                Key: folder + '/' + filename,
+                Body: fileBuffer,
+                ACL: 'public-read',
+                ContentType: mimeType
+            }))
+            deleteFile(path + filename, function (err) {
+                uploadLogger.error(err);
+                if (err)
+                    return callback(err);
+                else
+                    return callback(null);
+            })
+        } catch (e) {
+            const error = {
+                response: {
+                    message: "Something went wrong",
+                    data: {}
+                },
+                statusCode: 500
+            };
+            return callback(error);
 
-        s3bucket.putObject(params, function (err) {
-            if (err) {
-                const error = {
-                    response: {
-                        message: "Something went wrong",
-                        data: {}
-                    },
-                    statusCode: 500
-                };
-                return callback(error);
-            }
-            else {
-                deleteFile(path + filename, function (err) {
-                    uploadLogger.error(err);
-                    if (err)
-                        return callback(err);
-                    else
-                        return callback(null);
-                })
-            }
-        });
+        }
     });
 };
 
@@ -167,7 +165,7 @@ const createThumbnailImage = function createThumbnailImage(path: string, name: s
                         data: {}
                     },
                     statusCode: 500
-                }; 
+                };
                 return callback(error);
             }
         })
