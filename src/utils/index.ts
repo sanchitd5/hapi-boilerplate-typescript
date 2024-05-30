@@ -1,5 +1,4 @@
-import Hapi from "@hapi/hapi";
-import config from "../config";
+import Hapi from "@hapi/hapi"; 
 import {
   AuthType,
   RouteProperties,
@@ -62,19 +61,19 @@ export const createRoute = (props: RouteProperties): Hapi.ServerRoute => {
 };
 
 export const throwIfMongoDisabled = () => {
-  if (!config.APP_CONFIG.databases.mongo) {
+  if (!CONFIG.APP_CONFIG.databases.mongo) {
     throw Error("Trying to use MongoDB but MongoDB is disabled");
   }
 };
 
 export const throwIfPostGresDisabled = () => {
-  if (!config.APP_CONFIG.databases.postgres) {
+  if (!CONFIG.APP_CONFIG.databases.postgres) {
     throw Error("Trying to use Postgres but Postgres is disabled");
   }
 };
 
 export const throwIfMySQLDisabled = () => {
-  if (!config.APP_CONFIG.databases.mysql) {
+  if (!CONFIG.APP_CONFIG.databases.mysql) {
     throw Error("Trying to use MySQL but MySQL is disabled");
   }
 };
@@ -107,10 +106,9 @@ export const sendError = (
         if (converters.isMongoError(data)) {
           errorToSend +=
             CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DB_ERROR.customMessage;
-          if ((data.code = 11000)) {
+          if ((data.code === 11000)) {
             let duplicateValue =
-              data.errmsg &&
-              data.errmsg.substr(data.errmsg.lastIndexOf('{ : "') + 5);
+              data.errmsg?.substring(data.errmsg.lastIndexOf('{ : "') + 5);
             duplicateValue = duplicateValue.replace("}", "");
             errorToSend +=
               CONFIG.APP_CONSTANTS.STATUS_MSG.ERROR.DUPLICATE.customMessage +
@@ -153,7 +151,7 @@ export const sendError = (
 
 export const sendSuccess = (
   successMsg: GenericObject | string | undefined,
-  data: GenericObject | Array<GenericObject> | unknown
+  data: GenericObject | Array<GenericObject>
 ) => {
   if (successMsg === undefined) {
     successMsg = 'Success';
@@ -248,7 +246,7 @@ export const generateFilenameWithExtension =
     oldFilename: string,
     newFilename: string
   ) {
-    const ext = oldFilename.substr((~-oldFilename.lastIndexOf(".") >>> 0) + 2);
+    const ext = oldFilename.substring((~-oldFilename.lastIndexOf(".") >>> 0) + 2);
     return newFilename + "." + ext;
   };
 
@@ -265,7 +263,7 @@ export const isEmpty = (obj: GenericObject) => {
   // Note that this doesn't handle
   // toString and toValue enumeration bugs in IE < 9
   for (const key in obj) {
-    if (Object.hasOwnProperty.call(obj, key)) return false;
+    if (Object.hasOwn(obj, key)) return false;
   }
 
   return true;
@@ -326,7 +324,7 @@ export const cleanObject = (
 
 export const throwIfNotRunningPnpm = () => {
   if (process.env.npm_execpath && !process.env.npm_execpath.includes('pnpm')) {
-    throw ('Please use pnpm to run this project');
+    throw new Error('Please use pnpm to run this project');
   }
 }
 
@@ -338,8 +336,8 @@ const avgArray = (arr: Array<number>) => {
     throw new Error('Array is empty');
   }
   let total = 0;
-  for (let i = 0; i < arr.length; i++) {
-    total += arr[i];
+  for(const i of arr) {
+    total += i;
   }
   return total / arr.length;
 };

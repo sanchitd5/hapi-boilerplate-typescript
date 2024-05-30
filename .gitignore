@@ -44,3 +44,4 @@ logfile
 vcap-local.json
 
 pnpm-lock.yaml
+settings.json

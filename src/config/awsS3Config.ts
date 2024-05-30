@@ -32,8 +32,8 @@ interface S3BucketCredentialsProps {
 class S3BucketCredentials implements AwsS3BucketProperties {
     readonly projectFolder: string;
     readonly bucket: string;
-    readonly endpoint = "s3.au-syd.cloud-object-storage.appdomain.cloud";
-    readonly apiKeyId = "mhNbtjQUlsq2LBh5F03g81g1Wcq8hN6H1ZrWnpRtcD3L";
+    readonly endpoint = "";
+    readonly apiKeyId = "";
     readonly serviceInstanceId = "crn:v1:bluemix:public:cloud-object-storage:global:a/200d885c6c6a4629814c74e3c7594d35:bb53fed0-c301-4705-ad41-27a08a0ae3a6:bucket:ipan-v2-bucket";
     readonly folder: S3FolderDetails;
 

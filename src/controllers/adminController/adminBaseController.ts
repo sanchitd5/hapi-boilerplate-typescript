@@ -1,6 +1,6 @@
 import TokenManager from '../../lib/tokenManager';
 import GenericController from '../GenericController';
-import { GenericObject, GenericServiceCallback } from '../../definations';
+import { GenericObject } from '../../definations';
 
 class AdminBaseController extends GenericController {
   declare private ERROR;
@@ -22,7 +22,7 @@ class AdminBaseController extends GenericController {
         async (cb) => {
           try {
             const result = await this.services.AdminService?.getRecord({ emailId: emailId }, {}, {},);
-            userFound = (result && result[0]) || null;
+            userFound = (result?.[0]) || null;
             cb(null, result);
           } catch (e: any) {
             cb(e);
@@ -30,23 +30,22 @@ class AdminBaseController extends GenericController {
         },
         (cb) => {
           //validations
-          if (!userFound)
-            cb(this.ERROR.USER_NOT_FOUND as any);
-          else {
-            if (userFound && userFound.password != this.utils.CryptData(password)) {
-              cb(this.ERROR.INCORRECT_PASSWORD as any);
-            } else if (userFound.isBlocked == true) {
-              cb(this.ERROR.ACCOUNT_BLOCKED as any);
-            } else {
-              successLogin = true;
-              cb();
-            }
+          if (!userFound) {
+            return cb(this.ERROR.USER_NOT_FOUND);
           }
+          if (userFound && userFound.password != this.utils.CryptData(password)) {
+            return cb(this.ERROR.INCORRECT_PASSWORD);
+          }
+          if (userFound.isBlocked === true) {
+            return cb(this.ERROR.ACCOUNT_BLOCKED);
+          }
+          successLogin = true;
+          cb();
         },
         async (cb) => {
           try {
             const result = await this.services.AdminService?.getRecord({ emailId: emailId }, { password: 0 }, {});
-            userFound = (result && result[0]) || null;
+            userFound = (result?.[0]) || null;
             cb();
           } catch (e: any) {
             cb(e)
@@ -54,26 +53,23 @@ class AdminBaseController extends GenericController {
 
         },
         (cb) => {
-          if (successLogin) {
-            const tokenData = {
-              id: userFound._id,
-              type: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
-            };
-            TokenManager.setToken(tokenData, payload.deviceData, (err, result) => {
-              if (err) {
-                cb(err as any);
-              } else {
-                if (result && result.accessToken) {
-                  accessToken = result && result.accessToken;
-                  cb();
-                } else {
-                  cb(this.ERROR.IMP_ERROR as any);
-                }
-              }
-            });
-          } else {
-            cb(this.ERROR.IMP_ERROR as any);
+          if (!successLogin) {
+            return cb(this.ERROR.IMP_ERROR );
           }
+          const tokenData = {
+            id: userFound._id,
+            type: this.config.APP_CONSTANTS.DATABASE.USER_ROLES.ADMIN
+          };
+          TokenManager.setToken(tokenData, payload.deviceData, (err, result) => {
+            if (err) {
+              return cb(err as any);
+            }
+            if (result?.accessToken) {
+              accessToken = result.accessToken;
+              return cb();
+            }
+            cb(this.ERROR.IMP_ERROR);
+          });
         }
       ],
       (err) => {
@@ -95,7 +91,7 @@ class AdminBaseController extends GenericController {
           try {
             const data = await this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {});
             if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
-            userFound = (data && data[0]) || null;
+            userFound = (data?.[0]) || null;
             cb();
           } catch (e: any) {
             cb(e);
