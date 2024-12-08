@@ -5,7 +5,7 @@ import {
   GenericObject,
   TokenData,
   GenericServiceCallback,
-} from "../definations";
+} from "../definitions";
 import { sign, verify } from "jsonwebtoken";
 
 /**

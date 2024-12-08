@@ -1,7 +1,7 @@
 import GenericController from "../GenericController";
 import TokenManager from "../../lib/tokenManager";
 import * as CodeGenerator from "../../lib/codeGenerator";
-import { GenericObject, GenericServiceCallback } from "../../definations";
+import { GenericObject, GenericServiceCallback } from "../../definitions";
 
 class UserBaseController extends GenericController {
   private declare ERROR;

@@ -1,5 +1,5 @@
 import { CastError } from "mongoose";
-import { ApplicationError, FrozenResponseMessage, GenericObject, MongoError, ValidationError } from "../definations";
+import { ApplicationError, FrozenResponseMessage, GenericObject, MongoError, ValidationError } from "../definitions";
 
 class DataTypeConverters {
 

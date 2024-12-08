@@ -4,7 +4,7 @@ import UserBaseRoute from "./userRoute/userBaseRoute";
 import AdminBaseRoute from "./adminRoute/adminBaseRoute";
 import UploadBaseRoute from "./uploadRoute/uploadBaseRoute";
 import config from '../config';
-import { DATABASE } from '../definations';
+import { DATABASE } from '../definitions';
 
 const routes: Hapi.ServerRoute[] = [...DemoBaseRoute, ...UploadBaseRoute];
 

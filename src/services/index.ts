@@ -1,5 +1,5 @@
 import config from '../config';
-import { DATABASE } from '../definations';
+import { DATABASE } from '../definitions';
 import { throwIfMongoDisabled, throwIfPostGresDisabled, throwIfMySQLDisabled } from '../utils';
 import GenericMongoService from './genericServices/mongo';
 import GenericSQLService from './genericServices/sql';

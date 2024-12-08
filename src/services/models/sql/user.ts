@@ -1,4 +1,4 @@
-import { SqlModel } from '../../../definations';
+import { SqlModel } from '../../../definitions';
 import { DataTypes } from 'sequelize';
 
 class User extends SqlModel {

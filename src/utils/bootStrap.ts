@@ -2,7 +2,7 @@ import Service from '../services';
 import async from "async";
 import { CryptData, getTimestamp } from "./index";
 import { superAdmins } from "../config/users";
-import { GenericServiceCallback, DATABASE } from '../definations';
+import { GenericServiceCallback, DATABASE } from '../definitions';
 import config from '../config';
 
 const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback) => {
@@ -24,7 +24,7 @@ const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback)
                         cb(err)
                     }
                     else {
-                        appLogger.info(`Admin: ${adminData.emailId} Added Succesfully`);
+                        appLogger.info(`Admin: ${adminData.emailId} Added Successfully`);
                         cb()
                     }
                 });

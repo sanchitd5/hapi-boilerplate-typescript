@@ -12,7 +12,7 @@
  */
 
 
-import { GenericServiceCallback } from '../../definations';
+import { GenericServiceCallback } from '../../definitions';
 import UploadManager from '../../lib/uploadManager';
 import GenericController from "../GenericController";
 

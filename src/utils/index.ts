@@ -4,7 +4,7 @@ import {
   RouteProperties,
   FrozenResponseMessage,
   GenericObject,
-} from "../definations";
+} from "../definitions";
 import Joi from "joi";
 import MD5 from "md5";
 import Boom from "@hapi/boom";
@@ -87,7 +87,7 @@ export const sendError = (
     | FrozenResponseMessage
     | unknown
 ) => {
-  console.trace("ERROR OCCURED ", data);
+  console.trace("ERROR OCCURRED ", data);
   if (converters.toObject(data)) {
     if (
       typeof data == "object" &&

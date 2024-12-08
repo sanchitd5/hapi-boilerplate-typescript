@@ -3,7 +3,7 @@ import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction, verifyEmailFormat } from "../../utils";
 import Controller from "../../controllers";
 import Config from '../../config';
-import { GenericObject } from '../../definations';
+import { GenericObject } from '../../definitions';
 
 const userRegister = {
   method: "POST",

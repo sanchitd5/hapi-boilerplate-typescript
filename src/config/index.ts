@@ -1,4 +1,4 @@
-import { DATABASE, GenericObject } from "../definations";
+import { DATABASE, GenericObject } from "../definitions";
 import APP_CONSTANTS from "./appConstants";
 import AWS_S3_CONFIG from "./awsS3Config";
 import DB_CONFIG from "./dbConfig";

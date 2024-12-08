@@ -3,7 +3,7 @@ import * as Joi from "joi";
 import Controller from "../../controllers";
 import { createRoute, sendError, sendSuccess } from '../../utils';
 import Config from '../../config'
-import { AuthType } from '../../definations';
+import { AuthType } from '../../definitions';
 
 
 const demoRoute = createRoute({

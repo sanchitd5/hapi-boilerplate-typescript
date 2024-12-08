@@ -1,6 +1,6 @@
 import SQLModels from '../models/sql/index';
 import GenericDBService from './generic';
-import { GenericObject, GenericServiceCallback } from '../../definations';
+import { GenericObject, GenericServiceCallback } from '../../definitions';
 
 export default class GenericSQLService extends GenericDBService {
     declare model: any;

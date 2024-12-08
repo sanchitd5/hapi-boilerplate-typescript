@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { GenericError } from "../definations";
+import { GenericError } from "../definitions";
 import CONFIG from "../config/index";
 import { connect as mongooseConnect, disconnect as mongooseDisconnect, set as mongooseSet } from "mongoose";
 import { Sequelize } from 'sequelize';

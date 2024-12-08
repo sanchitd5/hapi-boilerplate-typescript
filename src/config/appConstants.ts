@@ -5,7 +5,7 @@ import {
   TimeUnits,
   FrozenResponseMessage,
   SwaaggerResponseMessage
-} from "../definations";
+} from "../definitions";
 
 const SOCIAL: FrozenObject = {
   FACEBOOK: "FACEBOOK"
@@ -144,7 +144,7 @@ const STATUS_MSG: StatusMessages = {
     },
     PRIVILEGE_MISMATCH: {
       statusCode: 400,
-      customMessage: "Your account doesnt have this privileges",
+      customMessage: "Your account doesn't have this privileges",
       type: "PRIVILEGE_MISMATCH"
     },
     NOT_REGISTERED: {
