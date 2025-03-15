@@ -1,7 +1,7 @@
 import { DATABASE, GenericObject } from "../definitions";
-import APP_CONSTANTS from "./appConstants";
-import AWS_S3_CONFIG from "./awsS3Config";
-import DB_CONFIG from "./dbConfig";
+import APP_CONSTANTS from "./app";
+import AWS_S3_CONFIG from "./awsS3";
+import DB_CONFIG from "./db";
 
 class AppConfig {
     declare databases: GenericObject;

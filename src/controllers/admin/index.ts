@@ -1,8 +1,8 @@
 import TokenManager from '../../lib/tokenManager';
-import GenericController from '../GenericController';
+import BaseController from '../base';
 import { GenericObject } from '../../definitions';
 
-class AdminBaseController extends GenericController {
+class Admin extends BaseController {
   declare private ERROR;
   declare private CONFIG;
 
@@ -471,5 +471,5 @@ class AdminBaseController extends GenericController {
   }
 }
 
-export default new AdminBaseController();
+export default new Admin();
 

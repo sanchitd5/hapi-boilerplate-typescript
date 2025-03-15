@@ -1,16 +1,11 @@
-import GenericController from "../GenericController";
+import GenericController from "../base";
 import TokenManager from "../../lib/tokenManager";
 import * as CodeGenerator from "../../lib/codeGenerator";
 import { GenericObject, GenericServiceCallback } from "../../definitions";
 
 class UserBaseController extends GenericController {
-  private declare ERROR;
-  constructor() {
-    super();
-    this.ERROR = this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
-  }
-
-
+  private  ERROR =  this.config.APP_CONSTANTS.STATUS_MSG.ERROR;
+ 
   createUser = (
     payloadData: GenericObject,
     callback: GenericServiceCallback
@@ -73,23 +68,16 @@ class UserBaseController extends GenericController {
               cb(this.ERROR.INVALID_PHONE_NO_FORMAT as any);
             else cb();
           },
-          (cb) => {
-            CodeGenerator.generateUniqueCode(
+         async  (cb) => {
+          const _uniqueCode = await  CodeGenerator.generateUniqueCode(
               6,
               this.config.APP_CONSTANTS.DATABASE.USER_ROLES.USER,
-              (err, numberObj: GenericObject) => {
-                if (err) cb(err);
-                else {
-                  if (!numberObj || numberObj.number == null)
-                    cb(this.ERROR.UNIQUE_CODE_LIMIT_REACHED as any);
-                  else {
-                    uniqueCode = numberObj.number;
-                    cb();
-                  }
-                }
-              }
+              
             );
-          },
+          if(_uniqueCode){
+            uniqueCode = parseInt(_uniqueCode);
+            cb();
+          }},
           (cb) => {
             //Insert Into DB
             dataToSave.OTPCode = uniqueCode;
@@ -394,18 +382,15 @@ class UserBaseController extends GenericController {
             cb(e);
           }
         },
-        (cb) => {
-          CodeGenerator.generateUniqueCode(
+        async (cb) => {
+          const _code = await CodeGenerator.generateUniqueCode(
             6,
-            this.config.APP_CONSTANTS.DATABASE.USER_ROLES.USER,
-            (err, numberObj: GenericObject) => {
-              if (err) return cb(err);
-              if (!numberObj || numberObj.number == null)
-                return cb(this.ERROR.UNIQUE_CODE_LIMIT_REACHED as any);
-              uniqueCode = numberObj.number;
-              cb();
-            }
+            this.config.APP_CONSTANTS.DATABASE.USER_ROLES.USER, 
           );
+          if (_code) {
+            uniqueCode = parseInt(_code);
+            cb();
+          }
         },
         (cb) => {
           const criteria = {
@@ -648,18 +633,16 @@ class UserBaseController extends GenericController {
             cb(this.ERROR.PASSWORD_CHANGE_REQUEST_INVALID as any);
           }
         },
-        (cb) => {
-          CodeGenerator.generateUniqueCode(
+        async (cb) => {
+          const _code = CodeGenerator.generateUniqueCode(
             6,
             this.config.APP_CONSTANTS.DATABASE.USER_ROLES.USER,
-            (err, numberObj: GenericObject) => {
-              if (err) return cb(err);
-              if (!numberObj || numberObj.number == null)
-                return cb(this.ERROR.UNIQUE_CODE_LIMIT_REACHED as any);
-              code = numberObj.number;
-              cb();
-            }
+            
           );
+          if(_code){
+            code = _code;
+            cb();
+          }
         },
         (cb) => {
           const dataToUpdate = {

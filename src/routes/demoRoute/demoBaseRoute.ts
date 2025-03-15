@@ -13,7 +13,7 @@ const demoRoute = createRoute({
   auth: AuthType.NONE,
   handler: (request) => {
     return new Promise((resolve, reject) => {
-      Controller.DemoBaseController.demoFunction(request.payload, (err: Error, data: any) => {
+      Controller.DemoBaseController.demoFunction(request.payload, (err, data) => {
         if (err) return reject(sendError(err));
         resolve(
           sendSuccess(

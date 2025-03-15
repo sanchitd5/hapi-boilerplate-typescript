@@ -1,13 +1,11 @@
-import DemoBaseController from "./demoController/demoBaseController";
-import UploadBaseController from "./uploadController/uploadBaseController";
-import UserBaseController from "./userController/userBaseController";
-import AdminBaseController from "./adminController/adminBaseController"; 
+import DemoBaseController from "./demo";
+import UploadBaseController from "./upload";
+import UserBaseController from "./user";
+import AdminBaseController from "./admin"; 
 
-class Controllers {
+export default new class Controllers {
   UserBaseController = UserBaseController;
   AdminBaseController = AdminBaseController;
   DemoBaseController = DemoBaseController;
   UploadBaseController = UploadBaseController;
-}
-
-export default new Controllers();
+}();

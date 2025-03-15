@@ -6,7 +6,7 @@ import GenericMongoService from '../services/genericServices/mongo';
 import DataTypeConverters from '../utils/converters';
 import config from '../config';
 
-class GenericController {
+class BaseController {
     declare protected services: typeof Services;
     declare protected async: typeof async;
     declare protected utils: typeof utils;
@@ -26,4 +26,4 @@ class GenericController {
     }
 }
 
-export default GenericController;
+export default BaseController;

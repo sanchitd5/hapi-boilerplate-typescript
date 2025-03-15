@@ -1,7 +1,7 @@
 import Service from '../services';
 import async from "async";
 import { CryptData, getTimestamp } from "./index";
-import { superAdmins } from "../config/users";
+import { superAdmins } from "../config/user";
 import { GenericServiceCallback, DATABASE } from '../definitions';
 import config from '../config';
 

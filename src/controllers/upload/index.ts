@@ -1,22 +1,8 @@
-
-
-/**
- * Please use appLogger for logging in this file try to abstain from console
- * levels of logging:
- * - TRACE - ‘blue’
- * - DEBUG - ‘cyan’
- * - INFO - ‘green’
- * - WARN - ‘yellow’
- * - ERROR - ‘red’
- * - FATAL - ‘magenta’
- */
-
-
 import { GenericServiceCallback } from '../../definitions';
 import UploadManager from '../../lib/uploadManager';
-import GenericController from "../GenericController";
+import BaseController from "../base";
 
-class UploadBaseController extends GenericController {
+class UploadController extends BaseController {
 
   uploadImage = (payloadData: any, callback: GenericServiceCallback) => {
     let imageFileURL: any;
@@ -27,7 +13,7 @@ class UploadBaseController extends GenericController {
         thumbnail: null
       }
     }
-    global.appLogger.info("????????", this.utils.checkFileExtension(imageFile.hapi.filename))
+    appLogger.info(this.utils.checkFileExtension(imageFile.hapi.filename))
     this.async.series([
       (cb) => {
         if (payloadData.hasOwnProperty("imageFile") && imageFile && imageFile.hapi.filename) {
@@ -124,4 +110,4 @@ class UploadBaseController extends GenericController {
 }
 
 
-export default new UploadBaseController();
+export default new UploadController();

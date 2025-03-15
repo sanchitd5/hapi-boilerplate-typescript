@@ -1,8 +1,4 @@
-/*
-*Please add project folder name and ibm bucket name here,
-* make sure project folder name doesnt not have spaces in between and is same
-* as the name you give while running upload_setup.sh
-*/
+
 interface S3FolderDetails {
     readonly profilePicture: string;
     readonly thumb: string;

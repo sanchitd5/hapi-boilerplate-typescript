@@ -1,6 +1,6 @@
-import GenericController from "../GenericController";
+import BaseController from "../base";
 
-class DemoBaseController extends GenericController {
+class DemoBaseController extends BaseController {
 
     /**
     * 
@@ -8,7 +8,7 @@ class DemoBaseController extends GenericController {
     * @param {String} payload.message 
     * @param {Function} callback 
      */
-    demoFunction = (payload: any, callback: Function) => {
+    demoFunction = (payload: any, callback:(err?: Error | null | undefined, result?: any) => void ) => {
         global.appLogger.info(payload.message); 
         return callback(null, payload);
     };
