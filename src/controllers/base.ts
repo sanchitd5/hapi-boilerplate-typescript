@@ -5,6 +5,7 @@ import lodash from 'lodash';
 import GenericMongoService from '../services/genericServices/mongo';
 import DataTypeConverters from '../utils/converters';
 import config from '../config';
+import { Schema } from 'mongoose';
 
 class BaseController {
     declare protected services: typeof Services;
@@ -12,10 +13,10 @@ class BaseController {
     declare protected utils: typeof utils;
     declare protected config: typeof config;
     declare protected _: lodash.LoDashStatic;
-    declare protected defaultService?: GenericMongoService;
+    declare protected defaultService?: GenericMongoService<Schema>; // TODO : Update the accept dynamic schema type from class
     declare protected useAuth: boolean;
     declare protected convert: typeof DataTypeConverters;
-    constructor(service?: GenericMongoService) {
+    constructor(service?: GenericMongoService<Schema>) {
         this.services = Services;
         this.async = async;
         this.utils = utils;

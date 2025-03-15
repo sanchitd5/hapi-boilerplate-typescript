@@ -10,7 +10,7 @@ const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback)
     async.series([
         async (cb) => {
             const data = await Service.AdminService?.getRecord({ emailId: adminData.emailId }, {}, {})
-            if (data.length > 0) {
+            if (data === undefined || data.length > 0) {
                 _skip = true;
                 return cb()
             }

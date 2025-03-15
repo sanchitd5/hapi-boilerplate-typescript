@@ -1,8 +1,9 @@
 import { GenericServiceCallback } from '../../types';
 import UploadManager from '../../lib/uploadManager';
 import BaseController from "../base";
+import { Schema } from 'mongoose';
 
-class UploadController extends BaseController {
+class UploadController extends BaseController  {
 
   uploadImage = (payloadData: any, callback: GenericServiceCallback) => {
     let imageFileURL: any;

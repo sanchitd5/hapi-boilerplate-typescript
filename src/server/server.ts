@@ -1,105 +1,194 @@
-import { Server as HapiServer } from "@hapi/hapi";
+import Hapi from "@hapi/hapi";
 import ServerHelper from "./helpers";
-import SocketManager from "../lib/socketManager";
+import cluster from "node:cluster";
+import SocketManager from '../lib/socketManager';
+import NodeCacheManager from "../lib/NodeCacheManager";
+import MemoryMonitor from '../lib/memoryMonitor';
+import MemoryController from '../lib/memoryController';
+/**
+ * @author Sanchit Dang
+ * @description Initilize HAPI Server
+ * @returns {Hapi.Server} A Started Hapi Server
+ */
+const initServer = async (): Promise<Hapi.Server> => {
 
-class Server {
-  private declare socketManager: SocketManager;
-  private declare server: HapiServer;
-  private receivedShutdownSignal = false;
+  await ServerHelper.ensureEnvironmentFileExists();
 
-  /**
-   * @author Sanchit Dang
-   * @description Initilize HAPI Server
-   */
-  private async initilize(): Promise<HapiServer> {
-    await ServerHelper.ensureEnvironmentFileExists();
+  //Create Server
+  const server = ServerHelper.createServer();
 
-    //Create Server
-    this.server = await ServerHelper.createServer();
+  //Register All Plugins
+  await ServerHelper.registerPlugins(server);
 
-    //Register All Plugins
-    this.server = await ServerHelper.registerPlugins(this.server);
+  //add views
+  ServerHelper.addViews(server);
 
-    //Default Routes
-    ServerHelper.setDefaultRoute(this.server);
+  //Default Routes
+  ServerHelper.setDefaultRoute(server);
 
-    //add views
-    await ServerHelper.addViews(this.server);
+  // Add routes to Swagger documentation
+  ServerHelper.addSwaggerRoutes(server);
 
-    // Add routes to Swagger documentation
-    ServerHelper.addSwaggerRoutes(this.server);
+  // Bootstrap Application
+  ServerHelper.bootstrap();
 
-    // Bootstrap Application
-    ServerHelper.bootstrap();
+  ServerHelper.attachLoggerOnEvents(server);
 
-    // Initiate Socket Server
-    this.socketManager = new SocketManager(this.server);
-    this.socketManager.connectSocket();
+  // Start Server
+  await ServerHelper.startServer(server);
 
-    ServerHelper.attachLoggerOnEvents(this.server);
+  return server;
+};
 
-    // Start Server
-    this.server = await ServerHelper.startServer(this.server);
+const shutdownGracefully = async (server?: Hapi.Server) => {
+  let exitCode = 0;
+  try {
+    appLogger.info("Initiating graceful shutdown...");
 
-    return this.server;
-  }
+    // Prepare memory controller for shutdown
+    await MemoryController.prepareForShutdown();
 
-  private async shutdownGracefully(server?: HapiServer, fatal = false) {
-    // force shutdown after waiting for 10 seconds
-    setTimeout(() => {
-      global.appLogger.warn("Waited for 10 seconds, forcing shutdown");
-      process.exit(fatal ? 0 : 1);
-    }, 10000);
-    this.receivedShutdownSignal = true;
-    
-    global.appLogger.info("Shutting down gracefully");
-    if (server) {
-      ServerHelper.removeListeners(server);
-      await server.stop();
+    // Stop all cron jobs first
+    ServerHelper.stopAllCrons();
+
+    // Disconnect socket connections if any
+    if (SocketManager.isConnected()) {
+      await SocketManager.disconnect();
     }
-    await ServerHelper.disconnectMongoDB();
 
-    process.exit(fatal ? 0 : 1);
+    // Close cache instances
+    NodeCacheManager.closeAllCacheInstances();
+
+    if (server) {
+      ServerHelper.disableListeners(server);
+      await server.stop({ timeout: 5000 });
+    }
+
+    // Clean up resources
+    await ServerHelper.cleanupResources();
+
+    // Final garbage collection
+    if (global.gc) {
+      global.gc();
+    }
+
+  } catch (error) {
+    appLogger.error('Error during shutdown:', error);
+    exitCode = 1;
+  } finally {
+    process.exit(exitCode);
   }
+};
 
-  /**
-   * @author Sanchit Dang
-   * @description Start HAPI Server
-   */
-  async start() {
-    await ServerHelper.connectMongoDB();
-    await ServerHelper.connectPostgresDB();
+// Add this function to initialize memory monitoring
+const initMemoryMonitoring = () => {
+  // Configure and start memory monitoring
+  MemoryMonitor.configure({
+    warning: 70,     // 70% heap usage triggers warning
+    critical: 85,    // 85% heap usage triggers critical alert
+    interval: 60000  // Check every minute
+  }).start();
 
+  // Set up listeners
+  MemoryMonitor.on('warning', (stats) => {
+    // Additional actions could be taken here when memory usage is high
+    if (cluster.isWorker) {
+      process.send?.({ type: 'memory-warning', workerId: cluster.worker?.id, stats });
+    }
+  });
+
+  MemoryMonitor.on('critical', (stats) => {
+    // Consider implementing emergency measures for critical memory situations
+    if (cluster.isWorker) {
+      process.send?.({ type: 'memory-critical', workerId: cluster.worker?.id, stats });
+
+      // Optional: Force restart this worker if memory usage is extremely high
+      if (parseFloat(stats.heapUsedPercent) > 95) {
+        appLogger.warn('Worker memory usage critically high, restarting worker');
+        setTimeout(() => process.exit(1), 1000); // Exit with error to trigger respawn
+      }
+    }
+  });
+
+  return MemoryMonitor;
+};
+
+/**
+ * @author Sanchit Dang
+ * @description Start HAPI Server
+ */
+export const startMyServer = async () => {
+  try {
+    console.info("Starting Server");
+    await ServerHelper.connectMongoDB(cluster.worker?.id ?? -1);
     // Global variable to get app root folder path
     ServerHelper.setGlobalAppRoot();
-
     process.on("unhandledRejection", (err) => {
-      global.appLogger.fatal(err);
-      this.shutdownGracefully(this.server, !!err);
+      try {
+        const stringifiedError = JSON.stringify(err);
+        if (stringifiedError.includes('ECONNRESET') || // Ignore ECONNRESET 
+          stringifiedError.includes('EPIPE') || // Ignore EPIPE errors  
+          stringifiedError.includes(`typeof exports==='object'&&typeof module==='object'`) || // Ignore webpack errors
+          stringifiedError.includes(`matFromImageData`) || // OpenCV error, ignore
+          stringifiedError.includes(`cv.CV`) || // OpenCV error, ignore 
+          stringifiedError.includes('Node.js') || // Ignore Node.js errors
+          stringifiedError.includes('@techstark/opencv-js/dist/opencv.js:30') // Ignore OpenCV.js specific error
+        ) {
+          return;
+        }
+      } catch (e) {
+        // Ignore
+      }
+      appLogger.fatal(err);
     });
 
-    const server = await this.initilize();
+    const server = await initServer();
 
-    process.on(
-      "SIGINT",
-      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
-    );
+    // Initialize memory monitoring
+    initMemoryMonitoring();
 
-    process.on(
-      "SIGTERM",
-      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
-    );
+    if (cluster.isWorker) {
+      await SocketManager.connectSocket();
+    }
 
-    process.on(
-      "end",
-      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
-    );
+    // Improve signal handling
+    const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
+    signals.forEach((signal) => {
+      process.once(signal, async () => {
+        appLogger.info(`Received ${signal}, starting graceful shutdown`);
+        await shutdownGracefully(server);
+      });
+    });
+
+    // Handle uncaughtException
+    process.on('uncaughtException', async (error) => {
+      appLogger.error('Uncaught Exception:', error);
+      await shutdownGracefully(server);
+    });
+
 
     server.listener.on(
       "end",
-      () => !this.receivedShutdownSignal && this.shutdownGracefully(this.server)
+      () => async () => await shutdownGracefully(server)
     );
-  }
-}
 
-export default Server;
+    // Add memory cleanup on request completion for large operations
+    server.events.on('response', (request) => {
+      // Only run for potentially memory-intensive operations
+      if (request.url.pathname.includes('/api/large_operation/')) {
+        // Suggest garbage collection after memory-intensive operations
+        if (global.gc) {
+          setTimeout(() => {
+            global.gc?.();
+            appLogger.debug('GC triggered after memory-intensive operation');
+          }, 1000);
+        }
+      }
+    });
+
+    return server;
+  } catch (e) {
+    appLogger.error('Error starting server', e);
+    process.exit(1);
+  }
+};

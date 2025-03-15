@@ -1,185 +1,386 @@
-import * as fs from 'fs-extra';
-import { GenericError } from "../types";
+import Hapi from "@hapi/hapi";
+import Joi from "joi";
+import log4js from "log4js";
+import SwaggerPlugins from "./plugins";
+import * as handlebars from "handlebars";
+import mongoose from "mongoose";
 import CONFIG from "../config/index";
-import { connect as mongooseConnect, disconnect as mongooseDisconnect, set as mongooseSet } from "mongoose";
-import { Sequelize } from 'sequelize';
-import { Server } from "@hapi/hapi";
-import { getLogger, configure as log4jsConfigure } from "log4js";
+import Path from "path";
 import Routes from "../routes";
-import BootStrap from "../utils/bootStrap";
-import Plugins from './plugins';
+import fs from "fs-extra";
+import CronManager from "../lib/cronManager";
+import Spawner from "../lib/spawner";
+import { ChildProcess } from "child_process";
+import { delay } from "../utils";
+import { Sequelize } from "sequelize";
 
+let loggersConfigured = false;
 
 /**
  * @description Helper file for the server
  */
 class ServerHelper {
   declare sequilizeInstance: Sequelize;
+  private declare spawner: Spawner;
+  private declare octoprintProcess: ChildProcess;
+  private declare motionProcess: ChildProcess;
   constructor(pid: number) {
     this.configureLog4js(pid);
+    this.spawner = new Spawner({
+      detached: true,
+      stdio: "inherit",
+    });
+
   }
 
   setGlobalAppRoot() {
-    import('path').then(path => {
-      global.appRoot = path.resolve(__dirname);
-    });
+    global.appRoot = Path.resolve(__dirname);
   }
 
   bootstrap() {
-    BootStrap.bootstrapAdmin((err: any) => {
-      if (err) global.appLogger.debug(err)
-    });
+    return;
   }
 
   /**
-   * 
-   * @param {Server} server 
+   *
+   * @param {Hapi.Server} server
    */
-  addSwaggerRoutes(server: Server) {
+  addSwaggerRoutes(server: Hapi.Server) {
+    appLogger.debug("Adding Swagger Routes");
+
+    // Add static route for Swagger UI assets
+    server.route({
+      method: 'GET',
+      path: '/swaggerui/{param*}',
+      handler: {
+        directory: {
+          path: Path.join(require.resolve('hapi-swagger'), '../../static'),
+          listing: false,
+          index: false
+        }
+      }
+    });
+
     server.route(Routes);
   }
 
   /**
-   * 
-   * @param {Server} server 
+   *
+   * @param {Hapi.Server} server
    */
-  attachLoggerOnEvents(server: Server) {
+  attachLoggerOnEvents(server: Hapi.Server) {
+    appLogger.debug("Attaching Logger on Events");
     server.events.on("response", (request: any) => {
-      global.appLogger.info(
-        `PID : ${process.pid} - ${request.info.remoteAddress} : ${request.method.toUpperCase()} ${request.url.pathname} --> ${request.response.statusCode}`);
-      global.appLogger.info("Request payload:", request.payload);
+      if (request.url.pathname.includes('swagger') || request.url.pathname.includes('fav') || request.url.pathname === '') {
+        // ignore swagger, empty and favicon requests
+        return;
+      }
+      appLogger.debug(
+        `${request.info.remoteAddress}->(${request.url.pathname
+        })[${request.method.toUpperCase()}] ${request.response.statusCode}`
+      );
+      if (request.payload) {
+        if (request.payload.password) {
+          request.payload.password = "********";
+        }
+        Object.keys(request.payload).forEach((key) => {
+          if (request.payload[key]?._readableState) {
+            request.payload[key] = "****Buffer_Image****";
+          }
+        })
+        appLogger.debug("Request payload:", request.payload);
+      }
     });
-  }
-
-  removeListeners(server: Server) {
-    server.events.removeAllListeners('response');
   }
 
   /**
-   * @returns {Server} A Hapi Server
+   * @returns {Hapi.Server} A Hapi Server
    */
-  async createServer(): Promise<Server> {
-    const server = new Server({
+  createServer(): Hapi.Server {
+    appLogger.debug("Creating HAPI Server");
+    const server = new Hapi.Server({
       app: {
-        name: process.env.APP_NAME || "default"
+        name: process.env.APP_NAME || "default",
       },
       port: process.env.HAPI_PORT || 8000,
-      routes: { cors: true }
+      routes: { cors: true },
     });
-    server.validator(await import('joi'));
+    server.validator(Joi);
     return server;
   }
 
   /**
    * @author Sanchit Dang
    * @description Adds Views to the server
-   * @param {Server} server 
+   * @param {Hapi.Server} server
    */
-  async addViews(server: Server) {
+  addViews(server: Hapi.Server) {
+    appLogger.debug("Adding Views to the server");
     (server as any).views({
       engines: {
-        html: await import('handlebars')
+        html: handlebars,
       },
       relativeTo: __dirname,
-      path: "../../views"
+      path: "../../views",
     });
   }
 
   /**
    * @author Sanchit Dang
    * @description sets default route for the server
-   * @param {Server} server HAPI Server
-   * @param {string} defaultRoute Optional - default route
+   * @param {Hapi.Server} server HAPI Server
+   * @param {String} defaultRoute Optional - default route
    */
-  setDefaultRoute(server: Server, defaultRoute?: string) {
-    if (defaultRoute === undefined) defaultRoute = "/"
+  setDefaultRoute(server: Hapi.Server, defaultRoute?: string) {
+    appLogger.debug("Setting default route for the server");
+    if (defaultRoute === undefined) defaultRoute = "/";
     server.route({
       method: "GET",
       path: defaultRoute,
       handler: (req, res) => {
         return (res as any).view("welcome");
-      }
+      },
     });
   }
 
   /**
-   * 
-   * @param {Server} server HAPI Server
+   *
+   * @param {Hapi.Server} server HAPI Server
    */
-  async registerPlugins(server: Server) {
+  async registerPlugins(server: Hapi.Server) {
     try {
-      await server.register(Plugins as any);
+      appLogger.debug("Registering Plugins on HAPI Server");
+      await (server as any).register(SwaggerPlugins);
       server.log(["info"], "Plugins Loaded");
     } catch (e) {
       server.log(["error"], "Error while loading plugins : " + e);
     }
-    return server; 
   }
 
   configureLog4js = (pid: number) => {
-    const loggers = ['App', 'Upload_Manager', 'Socket_Manager', 'Token_Manager', 'Mongo_Manager', 'Postgres_Manager'];
+    if (loggersConfigured) return;
+    loggersConfigured = true;
+    const defaultLogLevel = process.env.NODE_ENV === 'DEVELOPMENT' ? log4js.levels.DEBUG : log4js.levels.INFO;
+    const loggers = ['App', 'Upload_Manager', 'Socket_Manager', 'Token_Manager',
+      'Mongo_Manager',];
     const appenders = {};
+    const categories = {};
+
+    // Configure appenders for each logger with both console and file output
     loggers.forEach((logger) => {
       const name = "PID_" + pid.toString() + "_" + logger;
-      Object.assign(appenders, { [name]: { type: 'console' } });
+      const fileAppenderName = `${name}_file`;
+
+      // Console appender
+      Object.assign(appenders, {
+        [name]: { type: 'console' },
+        // File appender
+        [fileAppenderName]: {
+          type: 'dateFile',
+          filename: `logs/${logger.toLowerCase()}.log`,
+          pattern: '.yyyy-MM-dd',
+          compress: true,
+          keepFileExt: true,
+          numBackups: 7,
+          layout: {
+            type: 'pattern',
+            pattern: '[%d] [%p] %c - %m'
+          }
+        }
+      });
+
+      // Configure category to use both console and file appenders
+      Object.assign(categories, {
+        [logger]: {
+          appenders: [name, fileAppenderName],
+          level: "trace",
+          enableCallStack: true
+        }
+      });
     });
-    // Configuration for log4js.
-    log4jsConfigure({
+
+    // Configure log4js with both appenders
+    log4js.configure({
       appenders: appenders,
       categories: {
-        default: { appenders: [`PID_${pid}_` + 'App'], level: 'trace' },
-        Upload_Manager: { appenders: [`PID_${pid}_` + 'Upload_Manager'], level: 'trace' },
-        Socket_Manager: { appenders: [`PID_${pid}_` + 'Socket_Manager'], level: 'trace' },
-        Token_Manager: { appenders: [`PID_${pid}_` + 'Token_Manager'], level: 'trace' },
-        Mongo_Manager: { appenders: [`PID_${pid}_` + 'Mongo_Manager'], level: 'trace' },
-        Postgres_Manager: { appenders: [`PID_${pid}_` + 'Postgres_Manager'], level: 'trace' },
+        default: {
+          appenders: [`PID_${pid}_App`, `PID_${pid}_App_file`],
+          level: "trace",
+          enableCallStack: true
+        },
+        ...categories
+      },
+      disableClustering: true, // Disable clustering to prevent mutex issues
+    });
+
+    // Set up global loggers
+    global.appLogger = log4js.getLogger(`PID_${pid}_App`);
+    global.appLogger.level = defaultLogLevel;
+    global.uploadLogger = log4js.getLogger("Upload_Manager");
+    global.socketLogger = log4js.getLogger("Socket_Manager");
+    global.tokenLogger = log4js.getLogger("Token_Manager");
+    global.mongoLogger = log4js.getLogger("Mongo_Manager");
+
+    // Overwrite console while retaining original functionality
+    let _originalConsole: any = global.console;
+    _originalConsole = {
+      ..._originalConsole,
+      ...global.appLogger,
+      error: (...args: any[]) => {
+        global.appLogger.error(args[0], ...args.slice(1));
+      },
+      warn: (...args: any[]) => {
+        global.appLogger.warn(args[0], ...args.slice(1));
+      },
+      info: (...args: any[]) => {
+        global.appLogger.info(args[0], ...args.slice(1));
+      },
+      debug: (...args: any[]) => {
+        global.appLogger.debug(args[0], ...args.slice(1));
+      },
+      trace: (...args: any[]) => {
+        global.appLogger.trace(args[0], ...args.slice(1));
+      }
+    }
+    global.console = _originalConsole;
+
+    // Add shutdown hook for log4js
+    process.on('beforeExit', () => {
+      this.shutdownLog4Js();
+    });
+  };
+
+  shutdownLog4Js() {
+    return new Promise<void>((resolve) => {
+      try {
+        // Flush any remaining logs
+        Object.values(log4js.getLogger()).forEach((logger: any) => {
+          if (logger && typeof logger.shutdown === 'function') {
+            logger.shutdown();
+          }
+        });
+
+        log4js.shutdown(() => {
+          resolve();
+        });
+      } catch (error) {
+        console.error('Error shutting down log4js:', error);
+        resolve();
       }
     });
-    // Global Logger variables for logging
-    global.appLogger = getLogger(`PID_${pid}_` + 'App');
-    global.uploadLogger = getLogger(`PID_${pid}_` + 'Upload_Manager');
-    global.socketLogger = getLogger(`PID_${pid}_` + 'Socket_Manager');
-    global.tokenLogger = getLogger(`PID_${pid}_` + 'Token_Manager');
-    global.mongoLogger = getLogger(`PID_${pid}_` + 'Mongo_Manager');
-    global.postgresLogger = getLogger(`PID_${pid}_` + 'Postgres_Manager');
   }
 
   /**
-   * 
-   * @param {Server} server 
+   *
+   * @param {Hapi.Server} server
    */
-  async startServer(server: Server): Promise<Server> {
+  async startServer(server: Hapi.Server) {
     try {
+      appLogger.debug("Starting HAPI Server");
       await server.start();
-      global.appLogger.info("Server running on %s", server.info.uri);
+      appLogger.info("Server running on %s", server.info.uri);
     } catch (error) {
-      global.appLogger.fatal(error);
+      appLogger.fatal(error);
     }
-    return server;
   }
 
-  async connectMongoDB() {
 
-    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Connect : Disabled');
-    let connectionTimeout: NodeJS.Timeout;
+  async connectMongoDB(workerId: number) {
+    if (!CONFIG.APP_CONFIG.databases.mongo) {
+      return mongoLogger.debug("MongoDB Disabled");
+    }
 
     try {
-      global.mongoLogger.debug('Trying to make connection to DB');
-      mongooseSet('strictQuery', true);
-      connectionTimeout = setTimeout(() => {
-        throw new GenericError('MONGODB_CONNECT_TIMEOUT', new Error('MongoDB Connection Timeout'));
-      }, 6000);
-      const mongoose = await mongooseConnect(CONFIG.DB_CONFIG.mongo.URI, {
-        connectTimeoutMS: 5000, // 5 seconds
+      mongoLogger.debug("Trying to make connection to DB");
+      mongoose.set('strictQuery', true);
+
+      // Wait for connection and verify it's successful
+      const connection = await mongoose.connect(CONFIG.DB_CONFIG.mongo.URI);
+      if (connection.connection.readyState !== 1) {
+        throw new Error('Failed to establish MongoDB connection');
+      }
+
+      mongoLogger.debug("MongoDB Connected");
+
+      // Proper cleanup on process exit
+      process.on("exit", async () => {
+        try {
+          await mongoose.disconnect();
+          mongoLogger.debug("MongoDB Disconnected");
+        } catch (err) {
+          mongoLogger.error("Error disconnecting from MongoDB:", err);
+        }
       });
-      clearTimeout(connectionTimeout);
-      global.mongoLogger.info('MongoDB Connected');
-      return mongoose;
-    } catch (e: any) {
-      global.mongoLogger.error("DB Connect Error: ", e);
-      throw new GenericError('MONGODB_CONNECT_ERROR', e);
+
+    } catch (e) {
+      mongoLogger.error("DB Error: ", e);
+      // Only exit if we're in a worker process
+      if (workerId > 0) {
+        process.exit(1);
+      }
     }
   }
+
+  async ensureEnvironmentFileExists() {
+    appLogger.debug("Checking if .env file exists");
+    await fs.copy(".env.example", ".env", {
+      filter: (src, dest) => {
+        return !!dest;
+      },
+      overwrite: false,
+    });
+  }
+
+
+  startRedisServer() {
+    try {
+      this.spawner.spawn("redis-server", [" "]);
+    } catch (e) {
+      appLogger.error("Redis not installed");
+    }
+  }
+
+  disableListeners(server: Hapi.Server) {
+    server.events.removeAllListeners("response");
+  }
+
+
+  stopAllCrons() {
+    CronManager.cancelAll();
+  }
+
+  stopRedis() {
+    try {
+      this.spawner.spawn("killall", ["redis-server"]);
+    } catch (e) {
+      appLogger.error("Redis not installed");
+    }
+  }
+
+  /**
+   * Cleanup server resources before shutdown
+   */
+  async cleanupResources(): Promise<void> {
+    try {
+      // Cleanup any open database connections
+      if (mongoose.connection.readyState === 1) {
+        await mongoose.connection.close();
+      }
+
+      // Cleanup any running cron jobs
+      if (CronManager.cancelAll) {
+        CronManager.cancelAll();
+      }
+
+
+      // Wait for any pending operations to complete
+      await delay(1000);
+    } catch (error) {
+      console.error('Error during resource cleanup:', error);
+      throw error;
+    }
+  }
+
 
   async connectPostgresDB() {
     if (!CONFIG.APP_CONFIG.databases.postgres) return global.postgresLogger.info('Postgres Connect : Disabled');
@@ -192,27 +393,8 @@ class ServerHelper {
       return postgres;
     } catch (e: any) {
       global.postgresLogger.error("DB Connect Error: ", e);
-      throw new GenericError('POSTGRES_CONNECT_ERROR', e);
+      throw new Error('POSTGRES_CONNECT_ERROR', e);
     }
-  }
-
-  async disconnectMongoDB() {
-    if (!CONFIG.APP_CONFIG.databases.mongo) return global.mongoLogger.info('MongoDB Disconnect : Disabled');
-    try {
-      mongooseDisconnect();
-    } catch (e: any) {
-      global.mongoLogger.error("DB Disconnect Error: ", e);
-      throw new GenericError('MONGODB_DISCONNECT_ERROR', e);
-    }
-  }
-
-  async ensureEnvironmentFileExists() {
-    await fs.copy('.env.example', '.env', {
-      filter: (src, dest) => {
-        return !!dest;
-      },
-      overwrite: false
-    });
   }
 
   async getSequelizeInstance() {

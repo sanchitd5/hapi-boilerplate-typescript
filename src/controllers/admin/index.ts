@@ -14,7 +14,7 @@ class Admin extends BaseController {
   adminLogin = (payload, callback) => {
     const emailId = payload.emailId;
     const password = payload.password;
-    let userFound: GenericObject;
+    let userFound: GenericObject | null;
     let accessToken: string;
     let successLogin = false;
     this.async.series(
@@ -53,8 +53,8 @@ class Admin extends BaseController {
 
         },
         (cb) => {
-          if (!successLogin) {
-            return cb(this.ERROR.IMP_ERROR );
+          if (!successLogin || userFound == null) {
+            return cb(this.ERROR.IMP_ERROR);
           }
           const tokenData = {
             id: userFound._id,
@@ -83,14 +83,14 @@ class Admin extends BaseController {
   }
 
   accessTokenLogin(payload, callback) {
-    let userFound = null;
+    let userFound: any = null;
     const userData = payload;
     this.async.series(
       [
         async (cb) => {
           try {
             const data = await this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {});
-            if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+            if (data === undefined || data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             userFound = (data?.[0]) || null;
             cb();
           } catch (e: any) {
@@ -126,7 +126,7 @@ class Admin extends BaseController {
               _id: userData.adminId
             };
             const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+            if (data === undefined || data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
               userFound = this.convert.toObjectArray(data) && data[0] || null;
               if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
@@ -142,7 +142,7 @@ class Admin extends BaseController {
               emailId: payloadData.emailId
             }
             const data = await this.services.AdminService?.getRecord(criteria, {}, {});
-            if (data.length > 0) return cb(this.ERROR.USERNAME_EXIST)
+            if (data === undefined || data.length > 0) return cb(this.ERROR.USERNAME_EXIST)
             cb()
           } catch (e: any) {
             cb(e)
@@ -169,7 +169,7 @@ class Admin extends BaseController {
   }
 
   getAdmin(userData, callback) {
-    let adminList = [];
+    let adminList: any = [];
     let userFound;
     this.async.series([
       async (cb) => {
@@ -178,7 +178,7 @@ class Admin extends BaseController {
             _id: userData.adminId
           };
           const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
-          if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          if (data === undefined || data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           userFound = (data && data[0]) || null;
           if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
           else cb();
@@ -210,7 +210,7 @@ class Admin extends BaseController {
           _id: userData.adminId
         };
         const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
-        if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+        if (data === undefined || data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
         else {
           userFound = (data && data[0]) || null;
           if (userFound.userType != this.config.APP_CONSTANTS.DATABASE.USER_ROLES.SUPERADMIN) cb(this.ERROR.PRIVILEGE_MISMATCH);
@@ -220,7 +220,7 @@ class Admin extends BaseController {
       async (cb) => {
         try {
           const data = await this.services.AdminService?.getRecord({ _id: payloadData.adminId }, {}, {})
-          if (data.length == 0) {
+          if (data === undefined || data.length == 0) {
             return cb(this.ERROR.USER_NOT_FOUND);
           }
           cb();
@@ -255,7 +255,7 @@ class Admin extends BaseController {
             _id: userData.adminId
           };
           const data = await this.services.AdminService?.getRecord(criteria, { password: 0 }, {});
-          if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          if (data === undefined || data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           cb();
         } catch (e: any) {
           cb(e);
@@ -295,7 +295,7 @@ class Admin extends BaseController {
       async (cb) => {
         try {
           const data = await this.services.AdminService?.getRecord({ _id: userData.adminId }, { password: 0 }, {});
-          if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          if (data === undefined || data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           else {
             userFound = (this.convert.toObjectArray(data) && data[0]) || null;
             if (userFound?.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
@@ -348,7 +348,7 @@ class Admin extends BaseController {
             };
             const options = { lean: true };
             const data = await this.services.AdminService?.getRecord(query, {}, options);
-            if (data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+            if (data === undefined || data.length == 0) cb(this.ERROR.INCORRECT_ACCESSTOKEN);
             else {
               customerData = (data && data[0]) || null;
               if (customerData.isBlocked) cb(this.ERROR.ACCOUNT_BLOCKED);
@@ -368,9 +368,9 @@ class Admin extends BaseController {
           };
           const options = { lean: true };
           try {
-            const data = await this.services.AdminService?.getRecord(query, projection, options);
+            const data = await (this.services.AdminService?.getRecord(query, projection, options) as Promise<undefined | Array<any>>);
             customerData = (data && data[0]) || null;
-            if (customerData == null)
+            if (customerData == null || data === undefined)
               return cb(this.ERROR.NOT_FOUND);
             if (payloadData.skip == false) {
               if (
@@ -408,7 +408,7 @@ class Admin extends BaseController {
             if (err) {
               callback(err);
             } else {
-              if (!user || user.length == 0) {
+              if (!user || (user as any).length == 0) {
                 callback(this.ERROR.NOT_FOUND);
               } else {
                 callback(null);
@@ -432,7 +432,7 @@ class Admin extends BaseController {
           const data = await this.services.AdminService?.getRecord({
             _id: userData.adminId
           }, { password: 0 }, {});
-          if (data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
+          if (data == undefined || data.length == 0) return cb(this.ERROR.INCORRECT_ACCESSTOKEN);
           userFound = (data && data[0]) || null;
           if (userFound.isBlocked == true) cb(this.ERROR.ACCOUNT_BLOCKED)
           else cb()

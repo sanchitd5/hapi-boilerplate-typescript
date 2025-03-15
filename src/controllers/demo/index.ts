@@ -1,3 +1,4 @@
+import { Schema } from "mongoose";
 import BaseController from "../base";
 
 class DemoBaseController extends BaseController {
@@ -8,8 +9,8 @@ class DemoBaseController extends BaseController {
     * @param {String} payload.message 
     * @param {Function} callback 
      */
-    demoFunction = (payload: any, callback:(err?: Error | null | undefined, result?: any) => void ) => {
-        global.appLogger.info(payload.message); 
+    demoFunction = (payload: any, callback: (err?: Error | null | undefined, result?: any) => void) => {
+        global.appLogger.info(payload.message);
         return callback(null, payload);
     };
 }

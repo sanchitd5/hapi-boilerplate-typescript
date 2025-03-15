@@ -4,7 +4,7 @@ import "dotenv/config";
 import cluster, { Worker } from "node:cluster";
 import { cpus } from "node:os";
 import Config from "./config/index";
-import Server from "./server/server";
+import { startMyServer } from "./server/server";
 import SocketManager from './lib/socketManager';
 import { ProcessQueueCleanupService } from './services/custom/processQueueCleanupService';
 
@@ -139,13 +139,13 @@ const cleanup = () => {
   try {
     // Suggest garbage collection
     if (global.gc) {
-      global.nudeNetLogger.info('Running garbage collection during shutdown');
+      global.appLogger.info('Running garbage collection during shutdown');
       global.gc();
     }
 
     // Any other cleanup tasks can be added here
   } catch (err) {
-    global.nudeNetLogger.error('Error during cleanup:', err);
+    global.appLogger.error('Error during cleanup:', err);
   }
 };
 
@@ -166,7 +166,7 @@ const shutdownHandler = (signal: string) => {
       console.info('force stopping hapi server');
       process.exit(0);
     }, 12000);
-    global.nudeNetLogger.info("gracefully stopping hapi server");
+    global.appLogger.info("gracefully stopping hapi server");
 
   }).catch(err => {
     console.error('Error stopping cleanup service during shutdown:', err);
@@ -242,7 +242,7 @@ const startTheServer = async () => {
     });
 
   } else {
-    new Server().start();
+    await startMyServer();
     // Try to start cleanup service in all workers, Redis lock ensures only one succeeds
     ProcessQueueCleanupService.startCleanupInterval();
   }

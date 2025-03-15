@@ -45,3 +45,5 @@ vcap-local.json
 
 pnpm-lock.yaml
 settings.json
+/logs/*
+!/logs/.keep

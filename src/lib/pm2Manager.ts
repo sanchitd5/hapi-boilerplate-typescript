@@ -12,8 +12,8 @@ const execAsync = promisify(exec);
  */
 class PM2Manager {
   private static readonly LOG_DIR = path.join(process.cwd(), 'logs');
-  private static readonly APP_NAME = 'ctbrec-cleaner';
-  private static readonly DEV_APP_NAME = 'ctbrec-cleaner-dev';
+  private static readonly APP_NAME = 'HapiBaseSetup';
+  private static readonly DEV_APP_NAME = 'HapiBaseSetup-dev';
 
   /**
    * Ensure log directory exists
@@ -41,9 +41,9 @@ class PM2Manager {
       }
 
       if (mode === 'prod') {
-        await execAsync('pm2 start ecosystem.config.js --only ctbrec-cleaner');
+        await execAsync('pm2 start ecosystem.config.js --only hapi-base-setup');
       } else {
-        await execAsync('pm2 start ecosystem.config.js --only ctbrec-cleaner-dev');
+        await execAsync('pm2 start ecosystem.config.js --only hapi-base-setup-dev');
       }
       
       console.info(`${appName} started successfully`);
