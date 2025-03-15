@@ -1,4 +1,3 @@
-
 name: Analyse
 on:
   push:
@@ -9,6 +8,17 @@ jobs:
     name: Build
     runs-on: self-hosted
     steps:
+      - run: pwd
+      - run: ls -la .
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org" 
+      - run: npm i -g pnpm
+      - run: pnpm i
+      - run: pwd
+      - name: Run Tests
+        run: pnpm test
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v1.1.0
         env:
@@ -19,4 +29,5 @@ jobs:
             -Dsonar.verbose=true 
             -Dproject.settings=/github/workspace/sonar.properties
             -Dsonar.sources=/github/workspace/src
+            -Dsonar.javascript.lcov.reportPaths=/github/workspace/coverage/lcov.info
       - run: ls -la .

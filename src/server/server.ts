@@ -11,7 +11,7 @@ import MemoryController from '../lib/memoryController';
  * @description Initialize HAPI Server with all necessary configurations and plugins
  * @returns {Promise<Hapi.Server>} A started Hapi Server instance
  */
-const initServer = async (): Promise<Hapi.Server> => {
+export const initServer = async (): Promise<Hapi.Server> => {
   // Ensure all required environment variables are available
   await ServerHelper.ensureEnvironmentFileExists();
 
@@ -47,7 +47,7 @@ const initServer = async (): Promise<Hapi.Server> => {
  * @param server - The Hapi server instance to stop
  * @returns {Promise<void>}
  */
-const shutdownGracefully = async (server?: Hapi.Server) => {
+export const shutdownGracefully = async (server?: Hapi.Server) => {
   let exitCode = 0;
   try {
     appLogger.info("Initiating graceful shutdown...");
