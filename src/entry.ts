@@ -1,4 +1,10 @@
-// Read .env file.
+/**
+ * Entry point for the Hapi server application
+ * This file sets up and manages the Node.js clustering functionality,
+ * worker processes, signal handling, and graceful shutdown procedures.
+ */
+
+// Load environment variables
 import './global';
 import "dotenv/config";
 import cluster, { Worker } from "node:cluster";
@@ -8,15 +14,21 @@ import { startMyServer } from "./server/server";
 import SocketManager from './lib/socketManager';
 import { ProcessQueueCleanupService } from './services/custom/processQueueCleanupService';
 
+// Calculate the number of worker processes to spawn based on available CPUs
+// and configuration settings
 const numCpus: number = cpus().length;
 const noOfClusters = Config.APP_CONFIG.maxNoOfClusters > numCpus ? numCpus : Config.APP_CONFIG.maxNoOfClusters;
 
-export const workers: Worker[] = [];
-let currentClusterIndex = 0;
+// Array to keep track of all worker processes
+export const workers: Worker[] = []; 
 
+// Flag to prevent multiple shutdown attempts
 let receivedSignal = false;
 
-
+/**
+ * Main shutdown function for the primary process
+ * Gracefully terminates all worker processes and performs cleanup
+ */
 const shutdown = () => {
   if (receivedSignal) {
     return;
@@ -38,13 +50,19 @@ const shutdown = () => {
   // Run cleanup
   cleanup();
 
-  // Force exit after timeout
+  // Force exit after timeout if graceful shutdown takes too long
   setTimeout(() => {
     console.info('Force stopping server');
     process.exit(0);
   }, 12000);
 }
 
+/**
+ * Utility function to safely convert objects to strings for logging
+ * Truncates strings to prevent excessively large log entries
+ * @param obj - Any object to stringify
+ * @returns A shortened string representation of the object
+ */
 const stringifyAndMinimise = (obj: any) => {
   try {
     return JSON.stringify(obj, null, 0).substring(0, 10);
@@ -57,6 +75,11 @@ const stringifyAndMinimise = (obj: any) => {
   }
 }
 
+/**
+ * Sets up all event listeners for a worker process
+ * Handles disconnect, errors, crashes, and exits
+ * @param worker - The worker process to set up listeners for
+ */
 const setupWorkerListeners = (worker: Worker) => {
   worker.on("disconnect", () => {
     console.info(`Worker ${worker.process.pid} disconnected`);
@@ -98,6 +121,12 @@ const setupWorkerListeners = (worker: Worker) => {
   });
 }
 
+/**
+ * Replaces a crashed/dead worker with a new worker process
+ * Ensures proper cleanup of the old worker before spawning a new one
+ * @param worker - The worker to replace
+ * @returns The newly created worker or undefined if the worker wasn't found
+ */
 const destroyAndForkNewWorker = (worker: Worker) => {
   const _index = workers.findIndex((_worker) => _worker.id === worker.id);
   if (_index === -1) {
@@ -128,13 +157,18 @@ const destroyAndForkNewWorker = (worker: Worker) => {
   return _replacementWorker;
 }
 
+/**
+ * Initialize primary server functionality
+ * Sets up socket management for the primary process
+ */
 const exec = async () => {
-
-
   await SocketManager.setupPrimaryServer()
 }
 
-// Add proper cleanup of resources on shutdown
+/**
+ * Performs cleanup tasks during application shutdown
+ * Frees resources and performs garbage collection if available
+ */
 const cleanup = () => {
   try {
     // Suggest garbage collection
@@ -149,7 +183,11 @@ const cleanup = () => {
   }
 };
 
-// Add cleanup to existing signal handlers
+/**
+ * Signal handler function for various termination signals
+ * Ensures cleanup service is stopped before general cleanup
+ * @param signal - The signal received (SIGTERM, SIGINT, etc.)
+ */
 const shutdownHandler = (signal: string) => {
   if (receivedSignal) {
     return;
@@ -174,10 +212,16 @@ const shutdownHandler = (signal: string) => {
   });
 }
 
+/**
+ * Main function to start the server
+ * Handles both primary and worker processes differently
+ */
 const startTheServer = async () => {
   if (cluster.isPrimary) {
+    // Handle unhandled rejections in the primary process
     process.on("unhandledRejection", (err) => {
       const stringifiedError = JSON.stringify(err);
+      // Filter out common errors that don't require action
       if (stringifiedError.includes('ECONNRESET') || // Ignore ECONNRESET errors on the primary process
         stringifiedError.includes('EPIPE') || // Ignore EPIPE errors on the primary process
         stringifiedError.includes(`typeof exports==='object'&&typeof module==='object'`) || // Ignore webpack errors
@@ -192,6 +236,8 @@ const startTheServer = async () => {
     });
 
     console.log(`Primary ${process.pid} is running`);
+    
+    // Create initial worker processes
     for (let i = 0; i < noOfClusters; i++) {
       const worker = cluster.fork();
       setupWorkerListeners(worker);
@@ -204,7 +250,7 @@ const startTheServer = async () => {
     process.on("SIGINT", shutdown);
     process.on("end", shutdown);
 
-    // Set up process monitoring interval
+    // Set up process monitoring interval to ensure worker health
     const monitorInterval = setInterval(() => {
       if (receivedSignal) {
         clearInterval(monitorInterval);
@@ -233,6 +279,7 @@ const startTheServer = async () => {
       }
     }, 30000); // Check every 30 seconds
 
+    // Register signal handlers for graceful shutdown
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
     process.on("SIGHUP", shutdown);
@@ -242,6 +289,7 @@ const startTheServer = async () => {
     });
 
   } else {
+    // Worker process - start the Hapi server
     await startMyServer();
     // Try to start cleanup service in all workers, Redis lock ensures only one succeeds
     ProcessQueueCleanupService.startCleanupInterval();
@@ -256,4 +304,5 @@ process.on('SIGHUP', () => shutdownHandler('SIGHUP'));
 // Also register cleanup for normal exit
 process.on('exit', cleanup);
 
+// Start the application
 startTheServer();
