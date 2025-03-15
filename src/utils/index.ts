@@ -4,7 +4,7 @@ import {
   RouteProperties,
   FrozenResponseMessage,
   GenericObject,
-} from "../definitions";
+} from "../types";
 import Joi from "joi";
 import MD5 from "md5";
 import Boom from "@hapi/boom";

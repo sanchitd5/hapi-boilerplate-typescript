@@ -2,7 +2,7 @@ import Service from '../services';
 import async from "async";
 import { CryptData, getTimestamp } from "./index";
 import { superAdmins } from "../config/user";
-import { GenericServiceCallback, DATABASE } from '../definitions';
+import { GenericServiceCallback, DATABASE } from '../types';
 import config from '../config';
 
 const insertDataMongo = (adminData: any, callbackParent: GenericServiceCallback) => {

@@ -21,6 +21,8 @@
     "@hapi/hapi": "^20.3.0",
     "@hapi/inert": "^6.0.5",
     "@hapi/vision": "^6.1.0",
+    "@socket.io/cluster-adapter": "^0.2.2",
+    "@socket.io/sticky": "^1.0.4",
     "async": "^3.2.6",
     "axios": "^1.7.8",
     "cfenv": "1.2.4",

@@ -1,7 +1,7 @@
 import GenericController from "../base";
 import TokenManager from "../../lib/tokenManager";
 import * as CodeGenerator from "../../lib/codeGenerator";
-import { GenericObject, GenericServiceCallback } from "../../definitions";
+import { GenericObject, GenericServiceCallback } from "../../types";
 
 class UserBaseController extends GenericController {
   private  ERROR =  this.config.APP_CONSTANTS.STATUS_MSG.ERROR;

@@ -1,4 +1,4 @@
-import { GenericServiceCallback } from '../../definitions';
+import { GenericServiceCallback } from '../../types';
 import UploadManager from '../../lib/uploadManager';
 import BaseController from "../base";
 

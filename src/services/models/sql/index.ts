@@ -1,7 +1,7 @@
 import UserModel from './user'
 import { Model } from 'sequelize';
 import config from '../../../config';
-import { DATABASE, GenericObject } from '../../../definitions';
+import { DATABASE, GenericObject } from '../../../types';
 import ServerHelper from '../../../server/helpers';
 
 interface SqlStruct { Model: any, name: string, properties: GenericObject }

@@ -5,7 +5,7 @@ import {
   TimeUnits,
   FrozenResponseMessage,
   SwaaggerResponseMessage
-} from "../definitions";
+} from "../types";
 
 const SOCIAL: FrozenObject = {
   FACEBOOK: "FACEBOOK"

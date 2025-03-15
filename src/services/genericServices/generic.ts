@@ -1,4 +1,4 @@
-import { GenericObject } from "../../definitions";
+import { GenericObject } from "../../types";
 
 
 export default class GenericDBService {

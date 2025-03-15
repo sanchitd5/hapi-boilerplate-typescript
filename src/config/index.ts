@@ -1,4 +1,4 @@
-import { DATABASE, GenericObject } from "../definitions";
+import { DATABASE, GenericObject } from "../types";
 import APP_CONSTANTS from "./app";
 import AWS_S3_CONFIG from "./awsS3";
 import DB_CONFIG from "./db";
@@ -9,6 +9,7 @@ class AppConfig {
     declare adminDatabase: DATABASE;
     declare useSocket: boolean;
     declare noOfClusters: number;
+    maxNoOfClusters = process.env.MAX_CLUSTER_SIZE ? parseInt(process.env.MAX_CLUSTER_SIZE) : 8;
     constructor() {
         this.databases = {
             mongo: false,

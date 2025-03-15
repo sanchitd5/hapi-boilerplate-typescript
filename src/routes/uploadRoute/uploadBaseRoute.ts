@@ -3,7 +3,7 @@ import * as Joi from "joi";
 import { sendError, sendSuccess, failActionFunction } from "../../utils";
 import Controller from "../../controllers";
 import Config from "../../config";
-import { GenericObject } from "../../definitions";
+import { GenericObject } from "../../types";
 
 const uploadImage: ServerRoute = {
   method: "POST",

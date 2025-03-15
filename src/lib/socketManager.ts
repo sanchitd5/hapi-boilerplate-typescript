@@ -1,6 +1,9 @@
-import { Server } from '@hapi/hapi';
-import { Server as SocketServer, ServerOptions as SocketServerOptions } from "socket.io";
+import Hapi from '@hapi/hapi';
+import { Server, ServerOptions } from "socket.io";
 import config from '../config';
+import { createAdapter, setupPrimary } from '@socket.io/cluster-adapter';
+import { setupMaster, setupWorker } from '@socket.io/sticky';
+import cluster from 'node:cluster';
 
 type SocketEmitMessage = {
     message: {
@@ -11,64 +14,94 @@ type SocketEmitMessage = {
     }
 }
 
-interface ServerToClientEvents {
-    message: (arg0: SocketEmitMessage) => any;
-}
-
-interface ClientToServerEvents {
-    hello: () => void;
-}
-
-interface InterServerEvents {
-    ping: () => void;
-}
-
-interface SocketData {
-    name: string;
-    age: number;
-}
-
 class SocketManager {
-    private readonly declare server: SocketServer | undefined;
-    constructor(server: Server, options?: Partial<SocketServerOptions>) {
-        if (!config.APP_CONFIG.useSocket) global.socketLogger.info("Socket Server disabled");
-        else {
-            const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server.app, options);
-            global.socketLogger.info("Server Initalized");
-            this.server = io;
+    declare private server: Server | undefined;
+
+    async setupPrimaryServer() {
+        if (cluster.isPrimary) {
+            const http = require('http');
+            const httpServer = http.createServer();
+            // setup sticky sessions
+            setupMaster(httpServer, {
+                loadBalancingMethod: "least-connection",
+            });
+
+            // setup connections between the workers
+            setupPrimary();
+            httpServer.listen(8002);
+            socketLogger.info("primary socket server started ");
         }
     }
 
-    /**
-     * @returns {SocketServer|undefined} Socket Server Instance;
-     */
-    connectSocket(): SocketServer | undefined {
-        this.server?.on('connection', (socket) => {
-            global.socketLogger.info("Connection established: ", socket.id);
-            const messageToSend: SocketEmitMessage = {
-                message: {
-                    type: 'connection',
-                    statusCode: 200,
-                    statusMessage: 'WELCOME TO ',
-                    data: ""
-                }
-            };
-            socket.emit('message', messageToSend);
-        });
-        return this.server;
-    }
 
-    disconnectSocketServer() {
-        if (!config.APP_CONFIG.useSocket) return global.socketLogger.info("Socket Server Disabled");
-        this.server?.disconnectSockets(true);
+    /**
+     * @param {Hapi.Server} server Hapi Server
+     * @param {Partial<ServerOptions>} options Socket options
+     * 
+     * @returns {Server | void} Socket Server Instance;
+     */
+    async connectSocket(options?: Partial<ServerOptions>) {
+        if (!config.APP_CONFIG.useSocket) return socketLogger.info("socket server disabled");
+        const http = require('http');
+        const httpServer = http.createServer();
+        const io = new Server(httpServer, options);
+        io.adapter(createAdapter());
+        setupWorker(io);
+        socketLogger.info("socket server started on path :" + io.path());
+        io.on('connection', (socket) => {
+            console.debug('New Socket.IO connection from:', socket.handshake.address);
+        });
+        this.server = io;
+        return io;
     }
 
     emit(data: SocketEmitMessage) {
-        this.server?.emit('message', data);
+        if (!this.server) return socketLogger.error('Socket server not initiated');
+        const currentConnections = this.currentConnections();
+        if (currentConnections) {
+            socketLogger.debug(JSON.stringify(data));
+            this.server.emit('message', data);
+        }
+    }
+
+    currentConnections(): number {
+        if (!this.server) {
+            socketLogger.error('Socket server not initiated');
+            return 0;
+        }
+        return this.server.engine.clientsCount;
+    }
+
+    isConnected(): boolean {
+        return !!this.server && this.currentConnections() > 0;
+    }
+
+    async disconnect(): Promise<void> {
+        if (!this.server) {
+            socketLogger.info('Socket server already disconnected');
+            return;
+        }
+
+        try {
+            // Close all client connections
+            const sockets = await this.server.fetchSockets();
+            for (const socket of sockets) {
+                socket.disconnect(true);
+            }
+
+            // Close the server
+            this.server.close();
+            this.server = undefined;
+            socketLogger.info('Socket server disconnected successfully');
+        } catch (error) {
+            socketLogger.error('Error disconnecting socket server:', error);
+            throw error;
+        }
     }
 }
 
-export default SocketManager;
+const instance = new SocketManager();
+export default instance;
 
 
 

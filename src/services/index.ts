@@ -1,50 +1,52 @@
 import config from '../config';
-import { DATABASE } from '../definitions';
+import { DATABASE } from '../types';
+import { ProcessQueueInterface } from '../types/processQueue';
+import { TokenInterface } from '../types/token';
 import { throwIfMongoDisabled, throwIfPostGresDisabled, throwIfMySQLDisabled } from '../utils';
 import GenericMongoService from './genericServices/mongo';
 import GenericSQLService from './genericServices/sql';
 
-class Services {
-  declare UserService?: GenericMongoService | GenericSQLService;
-  declare AdminService?: GenericMongoService | GenericSQLService;
-  constructor() {
-    console.info('Initializing services');
-    console.debug('User :' + DATABASE[config.APP_CONFIG.userDatabase]);
-    switch (config.APP_CONFIG.userDatabase) {
-      case DATABASE.MONGODB:
-        throwIfMongoDisabled();
-        this.UserService = new GenericMongoService('User');
-        break;
-      case DATABASE.POSTGRES:
-        throwIfPostGresDisabled();
-        this.UserService = new GenericSQLService('User');
-        break;
-      case DATABASE.MYSQL:
-        throwIfMySQLDisabled();
-        break;
-      default:
-      // none
-    }
-    console.debug('Admin :' + DATABASE[config.APP_CONFIG.adminDatabase]);
-    switch (config.APP_CONFIG.adminDatabase) {
-      case DATABASE.MONGODB:
-        this.AdminService = new GenericMongoService('Admin');
-        break;
-      case DATABASE.POSTGRES:
-        throwIfPostGresDisabled();
-        break;
-      // TBI
-      case DATABASE.MYSQL:
-        throwIfMySQLDisabled();
-        break;
-      default:
-      // none
-    }
-  }
+const getUserSevice = () => {
+  switch (config.APP_CONFIG.userDatabase) {
+    case DATABASE.MONGODB:
+      throwIfMongoDisabled();
+      return new GenericMongoService('User');
 
-  ForgetPasswordService = new GenericMongoService('ForgetPassword');
-  TokenService = new GenericMongoService('Token');
+    case DATABASE.POSTGRES:
+      throwIfPostGresDisabled();
+      return new GenericSQLService('User');
+    case DATABASE.MYSQL:
+      throwIfMySQLDisabled();
+      // TBI
+      break;
+    default:
+    // none
+  }
 }
 
+const getAdminService = () => {
+  switch (config.APP_CONFIG.adminDatabase) {
+    case DATABASE.MONGODB:
+      return new GenericMongoService('Admin');
+    case DATABASE.POSTGRES:
+      throwIfPostGresDisabled();
+      break;
+    // TBI
+    case DATABASE.MYSQL:
+      throwIfMySQLDisabled();
+      break;
+    default:
+    // none
+  }
+}
 
-export default new Services();
+const services = {
+  ProcessQueueService: new GenericMongoService<ProcessQueueInterface>('ProcessQueue'),
+  TokenService: new GenericMongoService<TokenInterface>('Token'),
+  UserService: getUserSevice(),
+  AdminService: getAdminService(),
+  ForgetPasswordService: new GenericMongoService('ForgetPassword'),
+};
+
+
+export default services;

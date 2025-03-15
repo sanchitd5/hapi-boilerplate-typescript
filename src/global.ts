@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable no-var */
 import { Logger } from "log4js";
-import { BaseEnvironment } from "./definitions";
+import { BaseEnvironment } from "./types";
 
 declare global {
     var appRoot: string;

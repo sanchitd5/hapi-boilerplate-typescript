@@ -5,7 +5,7 @@ import {
   GenericObject,
   TokenData,
   GenericServiceCallback,
-} from "../definitions";
+} from "../types";
 import { sign, verify } from "jsonwebtoken";
 
 /**
@@ -73,7 +73,7 @@ const setTokenInDB = async function (
 
   try {
     const data = await Services.TokenService.getRecord(criteria, {}, {});
-    if (data.length === 0) {
+    if (data?.length === 0) {
       Services.TokenService.createRecord(objectToCreate, (err, data) => {
         if (err) return callback(err as Error);
         return callback(null, data);

@@ -6,7 +6,7 @@ import { unlink, createWriteStream, copy, readFile } from 'fs-extra';
 import ffmpeg from 'fluent-ffmpeg';
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import * as gmParent from 'gm';
-import { GenericServiceCallback } from '../definitions';
+import { GenericServiceCallback } from '../types';
 import converters from '../utils/converters';
 
 const deleteFile = (path: string, callback: (err: NodeJS.ErrnoException | null | undefined) => void) => {

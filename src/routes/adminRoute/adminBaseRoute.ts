@@ -9,7 +9,7 @@ import {
 } from "../../utils";
 import Controller from "../../controllers";
 import Config from "../../config";
-import { AuthType, DeviceData } from "../../definitions";
+import { AuthType, DeviceData } from "../../types";
 
 const adminLogin: ServerRoute = createRoute({
   method: "POST",
